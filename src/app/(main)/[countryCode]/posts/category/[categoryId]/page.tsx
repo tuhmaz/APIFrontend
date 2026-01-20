@@ -69,7 +69,19 @@ async function getCategories(countryCode: string) {
 async function getPublicSettings(): Promise<Record<string, string | null>> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
   try {
-    const res = await fetch(`${baseUrl}/front/settings`, { next: { revalidate: 300 } });
+    const headers: HeadersInit = {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    };
+    const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+    if (apiKey) {
+      (headers as Record<string, string>)['X-Frontend-Key'] = apiKey;
+    }
+
+    const res = await fetch(`${baseUrl}/front/settings`, {
+      next: { revalidate: 300 },
+      headers
+    });
     if (!res.ok) return {};
     const json: any = await res.json().catch(() => null);
     const body = json?.data ?? json;

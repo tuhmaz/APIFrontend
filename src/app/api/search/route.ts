@@ -40,7 +40,15 @@ export async function GET(request: NextRequest) {
       const headers: HeadersInit = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
       };
+
+      // Add Frontend API Key
+      const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+      if (apiKey) {
+        headers['X-Frontend-Key'] = apiKey;
+      }
+
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }

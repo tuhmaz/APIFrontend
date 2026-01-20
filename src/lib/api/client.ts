@@ -112,8 +112,15 @@ class ApiClient {
       'Content-Type': 'application/json',
       Accept: 'application/json',
       'X-App-Locale': 'ar',
+      'X-Requested-With': 'XMLHttpRequest',
       ...(options.headers || {}),
     };
+
+    // Add Frontend API Key if available
+    const frontendApiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+    if (frontendApiKey) {
+      (headers as Record<string, string>)['X-Frontend-Key'] = frontendApiKey;
+    }
 
     // Add Country Header
     if (typeof window !== 'undefined') {
@@ -283,7 +290,14 @@ class ApiClient {
     const url = this.buildUrl(endpoint);
     const headers: HeadersInit = {
       Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
     };
+
+    // Add Frontend API Key if available
+    const frontendApiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+    if (frontendApiKey) {
+      (headers as Record<string, string>)['X-Frontend-Key'] = frontendApiKey;
+    }
 
     const token = this.getToken();
     if (token) {

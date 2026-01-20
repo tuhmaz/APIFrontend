@@ -50,9 +50,17 @@ export default function ResourcePreloader() {
     const prefetchAPI = async (endpoint: string) => {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        };
+        const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+        if (apiKey) {
+          (headers as Record<string, string>)['X-Frontend-Key'] = apiKey;
+        }
         await fetch(`${baseUrl}${endpoint}`, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
         });
       } catch {
         // Silent fail

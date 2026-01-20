@@ -7,10 +7,34 @@ import { getStorageUrl, safeJsonLd } from '@/lib/utils';
 // Force dynamic rendering since we rely on cookies
 export const dynamic = 'force-dynamic';
 
+// Helper to get common headers for SSR requests
+function getSSRHeaders(countryId?: string): HeadersInit {
+  const headers: HeadersInit = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  };
+
+  // Add Frontend API Key if available
+  const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+  if (apiKey) {
+    (headers as Record<string, string>)['X-Frontend-Key'] = apiKey;
+  }
+
+  if (countryId) {
+    (headers as Record<string, string>)['X-Country-Id'] = countryId;
+  }
+
+  return headers;
+}
+
 async function getPublicSettings(): Promise<Record<string, string | null>> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
   try {
-    const res = await fetch(`${baseUrl}/front/settings`, { next: { revalidate: 300 } });
+    const res = await fetch(`${baseUrl}/front/settings`, {
+      next: { revalidate: 300 },
+      headers: getSSRHeaders()
+    });
     if (!res.ok) return {};
     const json: any = await res.json().catch(() => null);
     const body = json?.data ?? json;
@@ -25,20 +49,15 @@ async function getPublicSettings(): Promise<Record<string, string | null>> {
 async function getClasses(countryId: string) {
   try {
     const res = await fetch(`${API_CONFIG.BASE_URL}/school-classes?country_id=${countryId}`, {
-      // Revalidate every minute (ISR equivalent for fetch)
-      // Since we use force-dynamic, this might be ignored for the page, but good for caching
-      next: { revalidate: 60 }, 
-      headers: {
-        'Accept': 'application/json',
-        'X-Country-Id': countryId
-      }
+      next: { revalidate: 60 },
+      headers: getSSRHeaders(countryId)
     });
 
     if (!res.ok) {
       console.error('Failed to fetch classes:', res.status, await res.text());
       return [];
     }
-    
+
     const json = await res.json();
     return json.data || [];
   } catch (error) {
@@ -51,17 +70,14 @@ async function getCategories(countryId: string) {
   try {
     const res = await fetch(`${API_CONFIG.BASE_URL}/categories?country=${countryId}`, {
       next: { revalidate: 60 },
-      headers: {
-        'Accept': 'application/json',
-        'X-Country-Id': countryId
-      }
+      headers: getSSRHeaders(countryId)
     });
 
     if (!res.ok) {
       console.error('Failed to fetch categories:', res.status);
       return [];
     }
-    
+
     const json = await res.json();
     return json.data || [];
   } catch (error) {
