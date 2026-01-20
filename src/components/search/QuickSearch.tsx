@@ -20,7 +20,7 @@ interface Option {
 }
 
 export default function QuickSearch({ onSearch, className, showTitle = true }: QuickSearchProps) {
-  const { quickSearch, isSearching } = useSearch();
+  const { quickSearch, isSearching, error } = useSearch();
   const { country } = useCountryStore();
   
   const [selectedClass, setSelectedClass] = useState('');
@@ -264,6 +264,13 @@ export default function QuickSearch({ onSearch, className, showTitle = true }: Q
           </select>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center">
+          {error}
+        </div>
+      )}
 
       {/* Search Button */}
       <div className="text-center">
