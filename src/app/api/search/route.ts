@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
           }
 
           const type = mapCategoryToType(category);
-          const pathSegment = type === 'post' ? 'posts' : 'articles';
+          const pathSegment = type === 'post' ? 'posts' : 'lesson/articles';
           
           return {
             id: String(article.id),

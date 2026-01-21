@@ -102,7 +102,7 @@ export default async function CategoryArticlesList({
              return (
               <Link 
                 key={article.id}
-                href={`/${countryCode}/articles/${article.id}`}
+                href={`/${countryCode}/lesson/articles/${article.id}`}
                 className="flex items-center p-4 rounded-lg border border-gray-100 hover:border-primary/30 hover:bg-gray-50 transition-all duration-200 group"
               >
                 <div className="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 ml-4 group-hover:scale-110 transition-transform">

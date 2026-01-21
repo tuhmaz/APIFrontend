@@ -215,7 +215,7 @@ export default function CommentsPage() {
                           {comment.commentable ? (
                             <Link
                               href={comment.commentable_type.includes('Article')
-                                ? `/${selectedDatabase}/articles/${comment.commentable_id}#comment-${comment.id}`
+                                ? `/${selectedDatabase}/lesson/articles/${comment.commentable_id}#comment-${comment.id}`
                                 : `/${selectedDatabase}/posts/${comment.commentable_id}#comment-${comment.id}`
                               }
                               target="_blank"

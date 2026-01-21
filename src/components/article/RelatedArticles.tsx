@@ -25,7 +25,7 @@ export default function RelatedArticles({ articles, countryCode }: Props) {
         {articles.map((article) => (
           <Link 
             key={article.id} 
-            href={`/${countryCode}/articles/${article.id}`}
+            href={`/${countryCode}/lesson/articles/${article.id}`}
             className="group block border-b border-gray-50 last:border-0 pb-4 last:pb-0"
           >
             <h4 className="font-medium text-gray-800 group-hover:text-primary transition-colors line-clamp-2 mb-2">

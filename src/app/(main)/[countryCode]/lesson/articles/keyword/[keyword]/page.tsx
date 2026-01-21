@@ -87,7 +87,7 @@ export default async function KeywordPage({ params }: Props) {
           {articles.length > 0 ? (
             articles.map((article: any) => (
               <Link 
-                href={`/${countryCode}/article/${article.id}`} 
+                href={`/${countryCode}/lesson/articles/${article.id}`} 
                 key={article.id}
                 className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300"
               >

@@ -145,7 +145,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: article.title,
       description: description,
-      url: baseUrl ? `${baseUrl}/${countryCode}/article/${id}` : `/${countryCode}/article/${id}`,
+      url: baseUrl ? `${baseUrl}/${countryCode}/lesson/articles/${id}` : `/${countryCode}/lesson/articles/${id}`,
       siteName: resolvedSiteName,
       locale: ogLocale,
       type: 'article',
@@ -173,7 +173,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       creator: authorTwitterHandle,
     },
     alternates: {
-      canonical: `/${countryCode}/articles/${id}`,
+      canonical: `/${countryCode}/lesson/articles/${id}`,
     },
     other: {
       'article:published_time': article.created_at,
@@ -263,7 +263,7 @@ export default async function ArticlePage({ params }: Props) {
     description: article.meta_description || article.title,
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': baseUrl ? `${baseUrl}/${countryCode}/article/${id}` : `/${countryCode}/article/${id}`
+      '@id': baseUrl ? `${baseUrl}/${countryCode}/lesson/articles/${id}` : `/${countryCode}/lesson/articles/${id}`
     },
     keywords: article.keywords?.map((k: any) => k.keyword).join(', '),
     articleSection: sectionName,
@@ -372,7 +372,7 @@ export default async function ArticlePage({ params }: Props) {
                     {article.keywords.map((keyword: any, index: number) => (
                       <a
                         key={keyword.id || `keyword-${index}`}
-                        href={`/${countryCode}/articles/keyword/${encodeURIComponent(keyword.keyword)}`}
+                        href={`/${countryCode}/lesson/articles/keyword/${encodeURIComponent(keyword.keyword)}`}
                         className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-primary hover:text-white transition-colors"
                       >
                         {keyword.keyword}

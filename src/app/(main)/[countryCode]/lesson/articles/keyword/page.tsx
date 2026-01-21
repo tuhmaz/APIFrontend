@@ -68,7 +68,7 @@ export default async function KeywordsIndexPage({ params }: Props) {
                 {keywords.map((k: any) => (
                   <Link
                     key={k.id}
-                    href={`/${countryCode}/articles/keyword/${encodeURIComponent(k.keyword)}`}
+                    href={`/${countryCode}/lesson/articles/keyword/${encodeURIComponent(k.keyword)}`}
                     className="px-4 py-2 bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-blue-600 rounded-lg text-sm transition-colors border border-gray-100 hover:border-blue-100"
                   >
                     {k.keyword}
