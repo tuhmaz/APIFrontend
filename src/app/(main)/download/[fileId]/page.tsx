@@ -79,8 +79,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function DownloadPage({ params }: Props) {
+export default async function DownloadPage({ params, searchParams }: Props) {
   const { fileId } = await params;
+  const sp = await searchParams;
   const cookieStore = await cookies();
   const countryCode = cookieStore.get('country')?.value || 'jo';
 
