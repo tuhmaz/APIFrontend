@@ -15,6 +15,7 @@ interface Props {
   files: File[];
   className?: string;
   countryCode?: string;
+  backLink?: string;
 }
 
 function formatFileSize(bytes: number): string {
