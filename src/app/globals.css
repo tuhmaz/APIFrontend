@@ -1,9 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  /* Font Families */
-  --font-sans: 'Cairo', ui-sans-serif, system-ui, sans-serif;
+  /* Font Families - Cairo loaded via Next.js font optimization */
+  --font-sans: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 

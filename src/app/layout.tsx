@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Cairo } from 'next/font/google';
 import './globals.css';
 import ToastProvider from '@/components/ui/ToastProvider';
 import ThemeInitializer from '@/components/ThemeInitializer';
@@ -8,18 +8,13 @@ import { getStorageUrl } from '@/lib/utils';
 import { ssrFetch, getSSRHeaders } from '@/lib/api/ssr-fetch';
 import { API_CONFIG } from '@/lib/api/config';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
+// Cairo font - Arabic optimized, loaded via Next.js for better performance
+const cairo = Cairo({
+  variable: '--font-cairo',
+  subsets: ['arabic', 'latin'],
   display: 'swap',
-  preload: false,
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-  display: 'swap',
-  preload: false,
+  weight: ['400', '500', '600', '700'],
+  preload: true,
 });
 
 async function getPublicSettings(): Promise<Record<string, string | null>> {
@@ -107,23 +102,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.alemancenter.com';
-  // Extract domain from API URL for preconnect
-  const apiDomain = apiUrl.replace(/\/api\/?$/, '');
-
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
-        {/* DNS Prefetch for faster resolution */}
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-        <link rel="dns-prefetch" href={apiDomain} />
-
-        {/* Preconnect to API - will be used immediately */}
-        <link rel="preconnect" href={apiDomain} crossOrigin="anonymous" />
+        {/* Preconnect to Google Fonts - Critical for LCP */}
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
+        className={`${cairo.variable} antialiased min-h-screen`}
       >
         <ThemeInitializer />
         <ToastProvider />
