@@ -5,6 +5,7 @@ import ToastProvider from '@/components/ui/ToastProvider';
 import ThemeInitializer from '@/components/ThemeInitializer';
 import ResourcePreloader from '@/components/common/ResourcePreloader';
 import { getStorageUrl } from '@/lib/utils';
+import { ssrFetch, getSSRHeaders } from '@/lib/api/ssr-fetch';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -19,18 +20,9 @@ const geistMono = Geist_Mono({
 async function getPublicSettings(): Promise<Record<string, string | null>> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
   try {
-    const headers: HeadersInit = {
-      'Accept': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-    };
-    const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
-    if (apiKey) {
-      (headers as Record<string, string>)['X-Frontend-Key'] = apiKey;
-    }
-
-    const res = await fetch(`${baseUrl}/front/settings`, {
+    const res = await ssrFetch(`${baseUrl}/front/settings`, {
       next: { revalidate: 300 },
-      headers
+      headers: getSSRHeaders()
     });
     if (!res.ok) return {};
     const json: any = await res.json().catch(() => null);

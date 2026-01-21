@@ -3,6 +3,7 @@ import { postsService, categoriesService } from '@/lib/api/services';
 import { COUNTRIES } from '@/lib/api/config';
 import { safeJsonLd } from '@/lib/utils';
 import PostsIndexView from '@/components/posts/PostsIndexView';
+import { ssrFetch, getSSRHeaders } from '@/lib/api/ssr-fetch';
 
 // Use ISR with revalidation for better performance
 export const revalidate = 60;
@@ -69,18 +70,9 @@ async function getCategories(countryCode: string) {
 async function getPublicSettings(): Promise<Record<string, string | null>> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
   try {
-    const headers: HeadersInit = {
-      'Accept': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-    };
-    const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
-    if (apiKey) {
-      (headers as Record<string, string>)['X-Frontend-Key'] = apiKey;
-    }
-
-    const res = await fetch(`${baseUrl}/front/settings`, {
+    const res = await ssrFetch(`${baseUrl}/front/settings`, {
       next: { revalidate: 300 },
-      headers
+      headers: getSSRHeaders()
     });
     if (!res.ok) return {};
     const json: any = await res.json().catch(() => null);

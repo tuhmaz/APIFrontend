@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { API_CONFIG } from '@/lib/api/config';
+import { ssrFetch } from '@/lib/api/ssr-fetch';
 
 // واجهة نتيجة البحث
 interface SearchResult {
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/articles?${backendParams.toString()}`, {
+      const response = await ssrFetch(`${API_CONFIG.BASE_URL}/articles?${backendParams.toString()}`, {
         headers,
         cache: 'no-store',
       });

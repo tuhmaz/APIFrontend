@@ -13,6 +13,7 @@ import ArticleComments from '@/components/article/ArticleComments';
 import ClassHeader from '@/components/class/ClassHeader';
 import { STANDARD_CATEGORIES } from '@/components/subject/SemesterList';
 import { Calendar, Eye, User, ChevronLeft, Home } from 'lucide-react';
+import { ssrFetch, getSSRHeaders } from '@/lib/api/ssr-fetch';
 
 interface Props {
   params: Promise<{
@@ -49,18 +50,9 @@ const getArticle = async (id: string, countryCode: string) => {
 const getPublicSettings = async (): Promise<Record<string, string | null>> => {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
   try {
-    const headers: HeadersInit = {
-      'Accept': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-    };
-    const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
-    if (apiKey) {
-      (headers as Record<string, string>)['X-Frontend-Key'] = apiKey;
-    }
-
-    const res = await fetch(`${baseUrl}/front/settings`, {
+    const res = await ssrFetch(`${baseUrl}/front/settings`, {
       next: { revalidate: 300 },
-      headers
+      headers: getSSRHeaders()
     });
     if (!res.ok) return {};
     const json: any = await res.json().catch(() => null);
@@ -361,7 +353,6 @@ export default async function ArticlePage({ params }: Props) {
                   content={article.content}
                   files={article.files}
                   countryCode={countryCode}
-                  articleId={article.id}
                 />
 
                 {/* SEO Content Block (Increases text density) */}

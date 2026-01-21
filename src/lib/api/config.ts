@@ -195,6 +195,7 @@ export const API_ENDPOINTS = {
   FILES: {
     LIST: '/dashboard/files',
     SHOW: (id: number | string) => `/dashboard/files/${id}`,
+    INFO: (id: number | string) => `/files/${id}/info`,
     STORE: '/dashboard/files',
     UPDATE: (id: number | string) => `/dashboard/files/${id}`,
     DELETE: (id: number | string) => `/dashboard/files/${id}`,

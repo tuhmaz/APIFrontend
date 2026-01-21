@@ -32,6 +32,50 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
   const [commentBody, setCommentBody] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
+  const [copied, setCopied] = useState(false);
+
+  // Get current URL for sharing
+  const getShareUrl = () => {
+    if (typeof window !== 'undefined') {
+      return window.location.href;
+    }
+    return '';
+  };
+
+  // Share handlers
+  const shareOnFacebook = () => {
+    const url = encodeURIComponent(getShareUrl());
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+  };
+
+  const shareOnTwitter = () => {
+    const url = encodeURIComponent(getShareUrl());
+    const text = encodeURIComponent(post.title);
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
+  };
+
+  const shareOnWhatsApp = () => {
+    const text = encodeURIComponent(`${post.title}\n${getShareUrl()}`);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(getShareUrl());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = getShareUrl();
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   // Calculate content metrics for AdSense compliance
   const contentMetrics = useMemo(() => {
@@ -481,8 +525,8 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                             </div>
                           </div>
                           
-                          <Link 
-                            href={`/${countryCode}/download/${file.id}?postId=${post.id}`}
+                          <Link
+                            href={`/${countryCode}/download/${file.id}`}
                             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/40 shrink-0 w-full sm:w-auto transform hover:scale-105"
                           >
                             <Download size={18} />
@@ -660,23 +704,29 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                 مشاركة المنشور
               </h3>
               <div className="grid grid-cols-2 gap-3">
-                 <button className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-[#1877f2]/10 text-[#1877f2] rounded-lg hover:bg-[#1877f2] hover:text-white transition-all font-medium text-sm">
+                 <button
+                   onClick={shareOnFacebook}
+                   className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-[#1877f2]/10 text-[#1877f2] rounded-lg hover:bg-[#1877f2] hover:text-white transition-all font-medium text-sm"
+                 >
                    فيسبوك
                  </button>
-                 <button className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-[#1da1f2]/10 text-[#1da1f2] rounded-lg hover:bg-[#1da1f2] hover:text-white transition-all font-medium text-sm">
+                 <button
+                   onClick={shareOnTwitter}
+                   className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-[#1da1f2]/10 text-[#1da1f2] rounded-lg hover:bg-[#1da1f2] hover:text-white transition-all font-medium text-sm"
+                 >
                    تويتر
                  </button>
-                 <button className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-[#25d366]/10 text-[#25d366] rounded-lg hover:bg-[#25d366] hover:text-white transition-all font-medium text-sm">
+                 <button
+                   onClick={shareOnWhatsApp}
+                   className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-[#25d366]/10 text-[#25d366] rounded-lg hover:bg-[#25d366] hover:text-white transition-all font-medium text-sm"
+                 >
                    واتساب
                  </button>
-                 <button 
-                   onClick={() => {
-                     navigator.clipboard.writeText(window.location.href);
-                     alert('تم نسخ الرابط!');
-                   }}
+                 <button
+                   onClick={copyLink}
                    className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white transition-all font-medium text-sm"
                  >
-                   نسخ الرابط
+                   {copied ? '✓ تم النسخ!' : 'نسخ الرابط'}
                  </button>
               </div>
             </div>

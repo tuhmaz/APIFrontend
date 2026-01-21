@@ -15,7 +15,6 @@ interface Props {
   files: File[];
   className?: string;
   countryCode?: string;
-  articleId?: number | string;
 }
 
 function formatFileSize(bytes: number): string {
@@ -26,7 +25,7 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-export default function ArticleContent({ content, files, className, countryCode = 'jo', articleId }: Props) {
+export default function ArticleContent({ content, files, className, countryCode = 'jo' }: Props) {
   // Sanitize content to prevent XSS
   const processedContent = DOMPurify.sanitize(content, {
     ADD_TAGS: ['iframe'],
@@ -54,12 +53,14 @@ export default function ArticleContent({ content, files, className, countryCode 
                 key={file.id || `file-${index}`} 
                 className="bg-white p-4 rounded-lg border border-gray-200 flex items-center justify-between hover:shadow-md transition-shadow group"
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="w-12 h-12 bg-red-50 text-red-600 rounded-lg flex items-center justify-center shrink-0">
                     <span className="font-bold text-sm uppercase">{file.file_type || 'PDF'}</span>
                   </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1 group-hover:text-primary transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <h4 
+                      className="font-medium text-gray-900 mb-1 group-hover:text-primary transition-colors whitespace-normal break-all"
+                    >
                       {file.file_name || 'ملف للتحميل'}
                     </h4>
                     <p className="text-sm text-gray-500">
@@ -68,8 +69,8 @@ export default function ArticleContent({ content, files, className, countryCode 
                   </div>
                 </div>
                 
-                <a 
-                  href={`/${countryCode}/download/${file.id}?articleId=${articleId}`} 
+                <a
+                  href={`/${countryCode}/download/${file.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-lg shadow-primary/20"

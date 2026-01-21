@@ -13,11 +13,16 @@ interface Props {
 }
 
 export default function DownloadTimer({ fileId, countryCode, fileName, fileSize, fileType, customDownloadUrl }: Props) {
-  const [timeLeft, setTimeLeft] = useState(15);
+  const [timeLeft, setTimeLeft] = useState(25);
   const [canDownload, setCanDownload] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
+      // Pause timer if page is not visible
+      if (document.hidden) {
+        return;
+      }
+
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
@@ -31,7 +36,7 @@ export default function DownloadTimer({ fileId, countryCode, fileName, fileSize,
     return () => clearInterval(timer);
   }, []);
 
-  const progress = ((15 - timeLeft) / 15) * 100;
+  const progress = ((25 - timeLeft) / 25) * 100;
 
   const downloadUrl = customDownloadUrl || `/api/download/${fileId}?countryCode=${countryCode}`;
 
@@ -42,7 +47,7 @@ export default function DownloadTimer({ fileId, countryCode, fileName, fileSize,
         <FileText size={40} />
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-2" dir="ltr">{fileName}</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-4 break-all whitespace-normal leading-relaxed px-4" dir="ltr">{fileName}</h2>
       <div className="flex items-center justify-center gap-4 text-gray-500 mb-8 text-sm">
         <span className="bg-gray-100 px-3 py-1 rounded-full">{fileType || 'FILE'}</span>
         <span>•</span>
@@ -55,7 +60,7 @@ export default function DownloadTimer({ fileId, countryCode, fileName, fileSize,
             <span className="text-3xl font-bold text-primary">{timeLeft}</span>
             <span className="text-gray-500 mr-2">ثانية</span>
           </div>
-          <p className="text-gray-600 mb-6">جاري تجهيز رابط التحميل، يرجى الانتظار قليلاً...</p>
+          <p className="text-gray-600 mb-6">جاري تجهيز رابط التحميل، يرجى البقاء في الصفحة حتى اكتمال العد...</p>
           
           {/* Progress Bar */}
           <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">

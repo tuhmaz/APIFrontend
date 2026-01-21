@@ -20,12 +20,9 @@ export default function DashboardHeader() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const notificationRef = useRef<HTMLDivElement>(null);
-  const [avatarError, setAvatarError] = useState(false);
+  const [failedAvatarSrc, setFailedAvatarSrc] = useState<string | null>(null);
   const avatarSrc = getStorageUrl(user?.profile_photo_url || user?.profile_photo_path);
-
-  useEffect(() => {
-    setAvatarError(false);
-  }, [avatarSrc]);
+  const avatarError = failedAvatarSrc === avatarSrc;
 
   // Close notifications when clicking outside
   useEffect(() => {
@@ -249,7 +246,7 @@ export default function DashboardHeader() {
                 width={40}
                 height={40}
                 className="w-10 h-10 object-cover"
-                onError={() => setAvatarError(true)}
+                onError={() => setFailedAvatarSrc(avatarSrc)}
                 unoptimized={avatarSrc.includes('127.0.0.1') || avatarSrc.includes('localhost')}
               />
             ) : (

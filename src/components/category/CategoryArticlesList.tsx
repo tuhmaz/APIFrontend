@@ -110,7 +110,7 @@ export default async function CategoryArticlesList({
                 </div>
                 
                 <div className="flex-1 min-w-0 ml-4">
-                  <h4 className="text-lg font-medium text-gray-900 truncate mb-1 group-hover:text-primary transition-colors">
+                  <h4 className="text-lg font-medium text-gray-900 whitespace-normal break-words mb-1 group-hover:text-primary transition-colors">
                     {article.title}
                   </h4>
                   <div className="flex items-center gap-4 text-xs text-gray-500">

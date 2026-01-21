@@ -16,6 +16,9 @@ class ApiClient {
   private token: string | null = null;
   private cache: Map<string, { data: any; timestamp: number }> = new Map();
   private cacheTimeout = 300000; // 5 minutes cache (300000ms)
+  private requestTimeout = 15000; // 15 seconds timeout
+  private maxRetries = 3; // Maximum retry attempts
+  private retryDelay = 1000; // Base delay between retries (ms)
 
   constructor() {
     this.baseUrl = API_CONFIG.BASE_URL;
@@ -25,6 +28,66 @@ class ApiClient {
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('token');
     }
+  }
+
+  // Fetch with timeout
+  private async fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+    timeout: number = this.requestTimeout
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      return response;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  // Retry logic with exponential backoff
+  private async fetchWithRetry(
+    url: string,
+    options: RequestInit,
+    retries: number = this.maxRetries
+  ): Promise<Response> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const response = await this.fetchWithTimeout(url, options);
+        return response;
+      } catch (error: any) {
+        lastError = error;
+
+        // Don't retry on abort (user cancelled) or non-network errors
+        if (error.name === 'AbortError') {
+          // Timeout - worth retrying
+          console.warn(`Request timeout (attempt ${attempt + 1}/${retries + 1}): ${url}`);
+        } else if (error.message?.includes('fetch failed') || error.message?.includes('ECONNRESET')) {
+          // Network error - worth retrying
+          console.warn(`Network error (attempt ${attempt + 1}/${retries + 1}): ${url}`);
+        } else {
+          // Other errors - don't retry
+          throw error;
+        }
+
+        // Don't wait after the last attempt
+        if (attempt < retries) {
+          // Exponential backoff with jitter
+          const delay = this.retryDelay * Math.pow(2, attempt) + Math.random() * 500;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    // All retries failed
+    throw lastError || new Error('Request failed after retries');
   }
 
   setToken(token: string | null) {
@@ -160,7 +223,8 @@ class ApiClient {
     }
 
     try {
-      const response = await fetch(url, fetchConfig);
+      // Use retry mechanism for better reliability
+      const response = await this.fetchWithRetry(url, fetchConfig);
 
       let data: any;
       try {
@@ -188,7 +252,12 @@ class ApiClient {
       if (error && (error as any).status) {
         throw error as any;
       }
-      const err = new Error('خطأ في الاتصال بالخادم');
+      // More descriptive error message
+      const err = new Error(
+        error.name === 'AbortError'
+          ? 'انتهت مهلة الاتصال - يرجى المحاولة مرة أخرى'
+          : 'خطأ في الاتصال بالخادم'
+      );
       (err as any).status = 500;
       (err as any).errors = null;
       throw err;
@@ -304,7 +373,7 @@ class ApiClient {
       (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
     }
 
-    let response = await fetch(url, {
+    let response = await this.fetchWithRetry(url, {
       method: 'POST',
       headers,
       body: formData,

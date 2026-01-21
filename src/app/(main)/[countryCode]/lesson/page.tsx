@@ -2,34 +2,15 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { API_CONFIG, API_ENDPOINTS, COUNTRIES } from '@/lib/api/config';
+import { ssrFetch, getSSRHeaders } from '@/lib/api/ssr-fetch';
 import type { SchoolClass } from '@/types';
 
 // Use ISR with revalidation for better performance
 export const revalidate = 60;
 
-// Helper to get common headers for SSR requests
-function getSSRHeaders(countryId?: string): HeadersInit {
-  const headers: HeadersInit = {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest',
-  };
-
-  const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
-  if (apiKey) {
-    (headers as Record<string, string>)['X-Frontend-Key'] = apiKey;
-  }
-
-  if (countryId) {
-    (headers as Record<string, string>)['X-Country-Id'] = countryId;
-  }
-
-  return headers;
-}
-
 async function getClasses(countryId: string) {
   try {
-    const res = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.FRONTEND.CLASSES}?country_id=${countryId}`, {
+    const res = await ssrFetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.FRONTEND.CLASSES}?country_id=${countryId}`, {
       next: { revalidate: 60 },
       headers: getSSRHeaders(countryId),
     });

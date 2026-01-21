@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import Card, { CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import Modal, { ConfirmModal } from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { cn, getStorageUrl } from '@/lib/utils';
 import type { Message, User, PaginatedResponse } from '@/types';
@@ -45,6 +45,10 @@ export default function MessagesPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  
+  // Delete Confirmation State
+  const [messageToDelete, setMessageToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Compose Modal State
   const [composeModal, setComposeModal] = useState(false);
@@ -213,21 +217,29 @@ export default function MessagesPage() {
     }
   };
 
-  const handleDeleteMessage = async (e: React.MouseEvent | null, id: number) => {
+  const handleDeleteMessage = (e: React.MouseEvent | null, id: number) => {
     if (e) e.stopPropagation();
-    if (!confirm('هل أنت متأكد من حذف هذه الرسالة؟')) return;
+    setMessageToDelete(id);
+  };
+
+  const executeDelete = async () => {
+    if (!messageToDelete) return;
     
+    setIsDeleting(true);
     try {
-      // Optimistic update
-      setMessages(prev => prev.filter(m => m.id !== id));
-      if (selectedMessage?.id === id) setSelectedMessage(null);
+      await messagesService.delete(messageToDelete);
       
-      await messagesService.delete(id);
+      // Update UI
+      setMessages(prev => prev.filter(m => m.id !== messageToDelete));
+      if (selectedMessage?.id === messageToDelete) setSelectedMessage(null);
+      
       toast.success('تم حذف الرسالة');
+      setMessageToDelete(null);
     } catch (error) {
       console.error('Failed to delete message:', error);
       toast.error('فشل في حذف الرسالة');
-      fetchMessages();
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -545,6 +557,18 @@ export default function MessagesPage() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        isOpen={!!messageToDelete}
+        onClose={() => setMessageToDelete(null)}
+        onConfirm={executeDelete}
+        title="حذف الرسالة"
+        message="هل أنت متأكد من حذف هذه الرسالة؟ لا يمكن التراجع عن هذا الإجراء."
+        confirmText="حذف"
+        cancelText="إلغاء"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
