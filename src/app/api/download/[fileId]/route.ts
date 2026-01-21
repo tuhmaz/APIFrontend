@@ -26,7 +26,14 @@ export async function GET(
   try {
     const requestHeaders: Record<string, string> = {
       'Accept': '*/*', // Accept any content type
+      'X-Requested-With': 'XMLHttpRequest',
     };
+
+    const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+    if (apiKey) {
+      requestHeaders['X-Frontend-Key'] = apiKey;
+    }
+
     if (token) {
       requestHeaders['Authorization'] = `Bearer ${token}`;
     }

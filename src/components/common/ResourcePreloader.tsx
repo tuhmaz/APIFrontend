@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { API_CONFIG } from '@/lib/api/config';
 
 /**
  * Preloads critical resources based on current route
@@ -49,7 +50,13 @@ export default function ResourcePreloader() {
     // Prefetch API endpoint responses
     const prefetchAPI = async (endpoint: string) => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+        const baseUrl = API_CONFIG.BASE_URL;
+        // Don't prefetch if we're on localhost but trying to hit a remote API (prevent CORS/Mixed content)
+        // or if we're on https but trying to hit http (Mixed content)
+        if (typeof window !== 'undefined' && window.location.protocol === 'https:' && baseUrl.startsWith('http://localhost')) {
+            return; 
+        }
+
         const headers: HeadersInit = {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',

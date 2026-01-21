@@ -6,6 +6,7 @@ import ThemeInitializer from '@/components/ThemeInitializer';
 import ResourcePreloader from '@/components/common/ResourcePreloader';
 import { getStorageUrl } from '@/lib/utils';
 import { ssrFetch, getSSRHeaders } from '@/lib/api/ssr-fetch';
+import { API_CONFIG } from '@/lib/api/config';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -22,7 +23,7 @@ const geistMono = Geist_Mono({
 });
 
 async function getPublicSettings(): Promise<Record<string, string | null>> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  const baseUrl = API_CONFIG.BASE_URL;
   try {
     const res = await ssrFetch(`${baseUrl}/front/settings`, {
       next: { revalidate: 300 },

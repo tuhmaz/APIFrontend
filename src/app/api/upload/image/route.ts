@@ -21,8 +21,14 @@ export async function POST(req: Request) {
 
     const headers: HeadersInit = {
       Accept: 'application/json',
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
+      'X-Requested-With': 'XMLHttpRequest',
     };
+
+    const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+    if (apiKey) {
+      (headers as Record<string, string>)['X-Frontend-Key'] = apiKey;
+    }
 
     // Try upload endpoint
     const uploadUrl = `${apiBase}${API_ENDPOINTS.FILES.UPLOAD}`;

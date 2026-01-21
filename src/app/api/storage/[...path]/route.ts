@@ -23,7 +23,14 @@ export async function GET(
 
   const headers: HeadersInit = {
     Accept: '*/*',
+    'X-Requested-With': 'XMLHttpRequest',
   };
+
+  const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+  if (apiKey) {
+    (headers as Record<string, string>)['X-Frontend-Key'] = apiKey;
+  }
+
   if (token) {
     (headers as Record<string, string>).Authorization = `Bearer ${token}`;
   }

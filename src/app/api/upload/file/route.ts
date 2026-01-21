@@ -18,12 +18,20 @@ export async function POST(req: Request) {
     const primaryBase = hasApi ? base.replace(/\/api\/?$/, '') : base;
     const userUrl = `${primaryBase}${API_ENDPOINTS.AUTH.ME}`;
     
+    const permissionHeaders: HeadersInit = {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    };
+    
+    const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+    if (apiKey) {
+      (permissionHeaders as Record<string, string>)['X-Frontend-Key'] = apiKey;
+    }
+
     try {
       const userRes = await fetch(userUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        }
+        headers: permissionHeaders
       });
       
       if (!userRes.ok) {
@@ -46,8 +54,13 @@ export async function POST(req: Request) {
 
     const headers: HeadersInit = { 
       Accept: 'application/json',
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
+      'X-Requested-With': 'XMLHttpRequest',
     };
+
+    if (apiKey) {
+      (headers as Record<string, string>)['X-Frontend-Key'] = apiKey;
+    }
 
     const altBase = hasApi ? base : `${base}/api`;
 
