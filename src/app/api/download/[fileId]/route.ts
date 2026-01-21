@@ -38,9 +38,6 @@ export async function GET(
       cache: 'no-store',
     });
 
-    console.log(`[Proxy] Backend response status: ${response.status}`);
-    console.log(`[Proxy] Content-Type: ${response.headers.get('content-type')}`);
-
     if (!response.ok) {
       console.error(`[Proxy] Backend download error: ${response.status}`);
       // If it's a 404, it might be JSON or HTML.

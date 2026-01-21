@@ -295,9 +295,23 @@ export default function CreateArticlePage() {
         ],
         popover: {
           image: [
-            ['imagesize', ['imageSize100', 'imageSize50', 'imageSize25']],
+            ['resize', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
             ['float', ['floatLeft', 'floatRight', 'floatNone']],
             ['remove', ['removeMedia']],
+          ],
+          link: [
+            ['link', ['linkDialogShow', 'unlink']],
+          ],
+          table: [
+            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
+          ],
+          air: [
+            ['color', ['color']],
+            ['font', ['bold', 'underline', 'clear']],
+            ['para', ['ul', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link', 'picture']],
           ],
         },
         styleTags: ['p', 'blockquote', 'pre', 'h1', 'h2', 'h3', 'h4'],
@@ -318,36 +332,34 @@ export default function CreateArticlePage() {
             fd.append('quality', '85');
             fd.append('convert_to_webp', 'true');
             try {
-              const resp = await fetch('/api/upload/image', { method: 'POST', body: fd });
+              const resp = await fetch('/api/upload/image', {
+                method: 'POST',
+                body: fd,
+                credentials: 'include'
+              });
               const json = await resp.json();
-              const url = (json as any).url ?? (json as any).data?.url;
+              if (!resp.ok) {
+                throw new Error(json.message || 'فشل رفع الصورة');
+              }
+              // Handle nested data structure: { data: { url: ... } } or { url: ... }
+              const url = json?.data?.url ?? json?.url;
+              console.log('[Upload] Response:', json, 'URL:', url);
               if (url) {
-                el.summernote('insertImage', url, ($image: any) => {
-                  $image.attr('alt', file.name);
-                  $image.css('max-width', '100%');
-                  $image.css('height', 'auto');
+                // Create image element and insert it
+                const $img = $('<img>').attr({
+                  src: url,
+                  alt: file.name
+                }).css({
+                  'max-width': '100%',
+                  'height': 'auto'
                 });
+                el.summernote('insertNode', $img[0]);
+                console.log('[Upload] Image inserted successfully');
+              } else {
+                console.error('No URL returned from upload', json);
               }
             } catch (err) {
-              const info = extractError(err);
-              if (info.status === 404) {
-                try {
-                  const resp2 = await fetch('/api/upload/image', { method: 'POST', body: fd });
-                  const json2 = await resp2.json();
-                  const url2 = (json2 as any).url ?? (json2 as any).data?.url;
-                  if (url2) {
-                    el.summernote('insertImage', url2, ($image: any) => {
-                      $image.attr('alt', file.name);
-                      $image.css('max-width', '100%');
-                      $image.css('height', 'auto');
-                    });
-                  }
-                  return;
-                } catch (e2) {
-                  console.error('Upload image error (secure)', extractError(e2));
-                }
-              }
-              console.error('Upload image error', info);
+              console.error('Upload image error', extractError(err));
             }
           },
         },
@@ -499,6 +511,15 @@ export default function CreateArticlePage() {
               direction: rtl;
               text-align: right;
               font-family: Cairo, Tajawal, Almarai, sans-serif;
+              background-color: var(--color-background);
+              color: var(--color-foreground);
+            }
+            .note-editor .note-codable {
+              background-color: var(--color-background);
+              color: var(--color-foreground);
+            }
+            .note-editor .note-placeholder {
+              color: var(--color-muted-foreground);
             }
             .note-editor.note-frame {
               border: 1px solid hsl(var(--border));

@@ -81,7 +81,7 @@ function LoginContent() {
       }
 
       const ret = searchParams.get('return');
-      if (ret && ret.startsWith('/') && ret !== '/login' && !ret.startsWith('/login?') && !ret.startsWith('/login/')) {
+      if (ret && ret.startsWith('/') && !ret.startsWith('//') && ret !== '/login' && !ret.startsWith('/login?') && !ret.startsWith('/login/')) {
         router.push(ret);
       } else {
         router.push('/');

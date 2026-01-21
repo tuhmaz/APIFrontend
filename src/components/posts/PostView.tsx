@@ -100,6 +100,10 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
       ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'target']
     });
 
+    // Enforce rel="noopener noreferrer" for target="_blank" links
+    // Since we don't allow 'rel' in ADD_ATTR, DOMPurify strips it, so we can safely add it.
+    content = content.replace(/target="_blank"/g, 'target="_blank" rel="noopener noreferrer"');
+
     const headers: { id: string, text: string, level: number }[] = [];
     let index = 0;
     

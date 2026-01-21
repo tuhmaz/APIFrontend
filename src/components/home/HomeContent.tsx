@@ -331,7 +331,7 @@ export default function HomeContent({ country, classes, categories, initialSiteN
                         key={schoolClass.id}
                         href={`/${country.code}/lesson/${schoolClass.id}`}
                         className={`
-                          group relative flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300
+                          group relative flex items-center justify-between p-5 rounded-2xl border-1 transition-all duration-300
                           ${style}
                         `}
                       >
@@ -477,25 +477,25 @@ export default function HomeContent({ country, classes, categories, initialSiteN
             </div>
 
             {/* Search Widget */}
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 opacity-50" />
+            <div className="bg-card rounded-3xl shadow-sm border border-border p-6 relative overflow-hidden text-foreground">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-full -mr-4 -mt-4 opacity-50" />
               
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-slate-50 rounded-lg text-slate-700">
+                    <div className="p-2 bg-muted rounded-lg text-muted-foreground">
                        <Search className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-slate-800 text-lg">بحث سريع</h3>
+                    <h3 className="font-bold text-foreground text-lg">بحث سريع</h3>
                   </div>
                 </div>
                 
                 <QuickSearch showTitle={false} className="shadow-none border-0 p-0 bg-transparent" />
                 
-                <div className="mt-6 pt-4 border-t border-slate-100 flex justify-center">
+                <div className="mt-6 pt-4 border-t border-border flex justify-center">
                   <Link 
                     href="/search" 
-                    className="group inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-100"
+                    className="group inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/90 transition-colors bg-primary/10 px-4 py-2 rounded-full hover:bg-primary/20"
                   >
                      <span>بحث متقدم</span>
                      <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

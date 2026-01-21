@@ -128,8 +128,6 @@ export default function EditArticlePage() {
         const subjectsData = res.data?.subjects || res.subjects || [];
         const semestersData = res.data?.semesters || res.semesters || [];
 
-        console.log('Parsed data:', { articleData, classesData, subjectsData, semestersData });
-
         if (articleData) {
             // Update lists
             setClasses(classesData);
@@ -379,6 +377,27 @@ export default function EditArticlePage() {
       fontNamesIgnoreCheck: ['Cairo', 'Tajawal', 'Almarai'],
       disableDragAndDrop: true,
       dialogsInBody: true,
+      popover: {
+        image: [
+          ['resize', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
+          ['float', ['floatLeft', 'floatRight', 'floatNone']],
+          ['remove', ['removeMedia']],
+        ],
+        link: [
+          ['link', ['linkDialogShow', 'unlink']],
+        ],
+        table: [
+          ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+          ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
+        ],
+        air: [
+          ['color', ['color']],
+          ['font', ['bold', 'underline', 'clear']],
+          ['para', ['ul', 'paragraph']],
+          ['table', ['table']],
+          ['insert', ['link', 'picture']],
+        ],
+      },
       callbacks: {
         onInit: () => {
           // Fix RTL issues manually
@@ -408,36 +427,34 @@ export default function EditArticlePage() {
           fd.append('quality', '85');
           fd.append('convert_to_webp', 'true');
           try {
-            const resp = await fetch('/api/upload/image', { method: 'POST', body: fd });
+            const resp = await fetch('/api/upload/image', {
+              method: 'POST',
+              body: fd,
+              credentials: 'include'
+            });
             const json = await resp.json();
-            const url = (json as any).url ?? (json as any).data?.url;
+            if (!resp.ok) {
+              throw new Error(json.message || 'فشل رفع الصورة');
+            }
+            // Handle nested data structure: { data: { url: ... } } or { url: ... }
+            const url = json?.data?.url ?? json?.url;
+            console.log('[Upload] Response:', json, 'URL:', url);
             if (url) {
-              $editor.summernote('insertImage', url, ($image: any) => {
-                $image.attr('alt', file.name);
-                $image.css('max-width', '100%');
-                $image.css('height', 'auto');
+              // Create image element and insert it
+              const $img = $('<img>').attr({
+                src: url,
+                alt: file.name
+              }).css({
+                'max-width': '100%',
+                'height': 'auto'
               });
+              $editor.summernote('insertNode', $img[0]);
+              console.log('[Upload] Image inserted successfully');
+            } else {
+              console.error('No URL returned from upload', json);
             }
           } catch (err) {
-            const info = extractError(err);
-            if (info.status === 404) {
-              try {
-                const resp2 = await fetch('/api/upload/image', { method: 'POST', body: fd });
-                const json2 = await resp2.json();
-                const url2 = (json2 as any).url ?? (json2 as any).data?.url;
-                if (url2) {
-                  $editor.summernote('insertImage', url2, ($image: any) => {
-                    $image.attr('alt', file.name);
-                    $image.css('max-width', '100%');
-                    $image.css('height', 'auto');
-                  });
-                }
-                return;
-              } catch (e2) {
-                console.error('Upload image error (secure)', extractError(e2));
-              }
-            }
-            console.error('Upload image error', info);
+            console.error('Upload image error', extractError(err));
           }
         },
       },
@@ -489,20 +506,8 @@ export default function EditArticlePage() {
 
   // Debug: Log form validation state
   useEffect(() => {
-    console.log('Form validation:', {
-      title: formData.title.trim().length > 0,
-      content: (formData.content || '').trim().length > 0,
-      class_id: formData.class_id,
-      subject_id: formData.subject_id,
-      semester_id: formData.semester_id,
-      semesterOptions: semesterOptions.length,
-      subjectOptions: subjectOptions.length,
-      canSubmit,
-      isSubmitting,
-      isTitleDuplicate,
-      isLoading
-    });
-  }, [formData, canSubmit, isSubmitting, isTitleDuplicate, isLoading, semesterOptions, subjectOptions]);
+    // Form validation logic
+  }, [formData, canSubmit, semesterOptions, subjectOptions]);
 
   // Debug page state
   console.log('Page state:', { isAuthorized, isLoading, formData: { class_id: formData.class_id, subject_id: formData.subject_id, semester_id: formData.semester_id } });

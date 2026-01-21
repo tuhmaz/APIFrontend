@@ -162,7 +162,7 @@ export default async function ClassSubjectsPage({ params }: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 pb-16">
+    <div className="min-h-screen bg-[#f8f9fa] pb-16">
       {/* Section 1: Page Header */}
       <ClassHeader title={pageTitle} />
 

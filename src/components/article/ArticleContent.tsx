@@ -27,10 +27,14 @@ function formatFileSize(bytes: number): string {
 
 export default function ArticleContent({ content, files, className, countryCode = 'jo' }: Props) {
   // Sanitize content to prevent XSS
-  const processedContent = DOMPurify.sanitize(content, {
+  let processedContent = DOMPurify.sanitize(content, {
     ADD_TAGS: ['iframe'],
     ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'target']
   });
+
+  // Enforce rel="noopener noreferrer" for target="_blank" links
+  // Since we don't allow 'rel' in ADD_ATTR, DOMPurify strips it, so we can safely add it.
+  processedContent = processedContent.replace(/target="_blank"/g, 'target="_blank" rel="noopener noreferrer"');
 
   return (
     <div className={className}>

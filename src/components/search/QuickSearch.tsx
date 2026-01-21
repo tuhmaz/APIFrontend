@@ -168,9 +168,9 @@ export default function QuickSearch({ onSearch, className, showTitle = true }: Q
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
-      className={cn('bg-white rounded-2xl shadow-lg border border-gray-200 p-6', className)}
+      className={cn('bg-card rounded-2xl shadow-lg border border-border p-6 text-foreground', className)}
     >
-      {showTitle && <h3 className="text-xl font-bold text-center text-gray-800 mb-6">بحث سريع</h3>}
+      {showTitle && <h3 className="text-xl font-bold text-center text-foreground mb-6">بحث سريع</h3>}
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* Class Selector */}
@@ -185,7 +185,7 @@ export default function QuickSearch({ onSearch, className, showTitle = true }: Q
             value={selectedClass}
             onChange={(e) => setSelectedClass(e.target.value)}
             disabled={isLoadingClasses}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100"
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-background text-foreground focus:ring-2 focus:ring-green-500/30 focus:border-green-500 disabled:bg-muted disabled:text-muted-foreground"
           >
             <option value="">{isLoadingClasses ? 'جاري التحميل...' : 'اختر صف'}</option>
             {classes.map((cls) => (
@@ -208,7 +208,7 @@ export default function QuickSearch({ onSearch, className, showTitle = true }: Q
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
             disabled={!selectedClass || isLoadingSubjects}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-background text-foreground focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 disabled:bg-muted disabled:text-muted-foreground"
           >
             <option value="">{isLoadingSubjects ? 'جاري التحميل...' : 'اختر المادة'}</option>
             {subjects.map((subject) => (
@@ -231,7 +231,7 @@ export default function QuickSearch({ onSearch, className, showTitle = true }: Q
             value={selectedSemester}
             onChange={(e) => setSelectedSemester(e.target.value)}
             disabled={!selectedSubject || isLoadingSemesters}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100"
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-background text-foreground focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 disabled:bg-muted disabled:text-muted-foreground"
           >
             <option value="">{isLoadingSemesters ? 'جاري التحميل...' : 'اختر فصل دراسي'}</option>
             {semesters.map((semester) => (
@@ -253,7 +253,7 @@ export default function QuickSearch({ onSearch, className, showTitle = true }: Q
             aria-label="تصنيف الملف"
             value={selectedFileType}
             onChange={(e) => setSelectedFileType(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-background text-foreground focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500"
           >
             <option value="">تصنيف الملف</option>
             {fileTypes.map((type) => (
@@ -267,7 +267,7 @@ export default function QuickSearch({ onSearch, className, showTitle = true }: Q
 
       {/* Error Message */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center">
+        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm text-center">
           {error}
         </div>
       )}
@@ -284,7 +284,7 @@ export default function QuickSearch({ onSearch, className, showTitle = true }: Q
         </button>
         
         {isSearchDisabled && (
-          <p className="text-sm text-gray-500 mt-3">
+          <p className="text-sm text-muted-foreground mt-3">
             اختر على الأقل خيار واحد للبحث
           </p>
         )}

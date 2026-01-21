@@ -139,7 +139,8 @@ class ApiClient {
 
   private sanitizeReturnPath(path: string): string | null {
     if (!path) return null;
-    if (!path.startsWith('/')) return null;
+    // Must start with / but NOT // (to prevent protocol-relative URLs)
+    if (!path.startsWith('/') || path.startsWith('//')) return null;
 
     const blocked = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
     for (const p of blocked) {

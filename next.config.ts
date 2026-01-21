@@ -94,27 +94,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  async rewrites() {
-    // Use API domain in production, localhost in development
-    let apiUrl = process.env.NODE_ENV === 'production'
-      ? 'https://api.alemancenter.com'
-      : 'http://localhost:8000';
-
-    if (process.env.NEXT_PUBLIC_API_URL) {
-      apiUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '');
-    }
-
-    return [
-      {
-        source: '/storage/:path*',
-        destination: `${apiUrl}/storage/:path*`,
-      },
-      {
-        source: '/assets/:path*',
-        destination: `${apiUrl}/assets/:path*`,
-      },
-    ];
-  },
   async headers() {
     return [
       {
@@ -142,11 +121,11 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
+            value: 'strict-origin-when-cross-origin'
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+            value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()'
           }
         ]
       },
@@ -171,7 +150,29 @@ const nextConfig: NextConfig = {
         ]
       }
     ];
-  }
+  },
+  async rewrites() {
+    // Use API domain in production, localhost in development
+    let apiUrl = process.env.NODE_ENV === 'production'
+      ? 'https://api.alemancenter.com'
+      : 'http://localhost:8000';
+
+    if (process.env.NEXT_PUBLIC_API_URL) {
+      apiUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '');
+    }
+
+    return [
+      {
+        source: '/storage/:path*',
+        destination: `${apiUrl}/storage/:path*`,
+      },
+      {
+        source: '/assets/:path*',
+        destination: `${apiUrl}/assets/:path*`,
+      },
+    ];
+  },
+
 };
 
 export default nextConfig;

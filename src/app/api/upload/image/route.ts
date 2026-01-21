@@ -9,71 +9,76 @@ export async function POST(req: Request) {
     const token = cookieStore.get('token')?.value;
 
     if (!token) {
+      console.log('[Upload] No token found in cookies');
       return NextResponse.json({ message: 'غير مصرح لك بالقيام بهذه العملية' }, { status: 401 });
     }
 
-    // Verify permissions
+    // Build API base URL
     const base = API_CONFIG.BASE_URL;
     const hasApi = /\/api\/?$/.test(base);
     const primaryBase = hasApi ? base.replace(/\/api\/?$/, '') : base;
-    const userUrl = `${primaryBase}${API_ENDPOINTS.AUTH.ME}`;
-    
-    try {
-      const userRes = await fetch(userUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        }
-      });
-      
-      if (!userRes.ok) {
-        return NextResponse.json({ message: 'فشل التحقق من الصلاحيات' }, { status: 401 });
-      }
-      
-      const userData = await userRes.json();
-      const user = userData.data || userData; // Handle potential wrapping
-      
-      const hasPermission = user.roles?.some((r: any) => ['admin', 'super_admin'].includes(r.name)) || 
-                            user.permissions?.some((p: any) => p.name === 'manage files');
-                            
-      if (!hasPermission) {
-        return NextResponse.json({ message: 'ليس لديك صلاحية رفع الملفات' }, { status: 403 });
-      }
-    } catch (e) {
-      console.error('Permission check failed:', e);
-      return NextResponse.json({ message: 'خطأ في التحقق من الصلاحيات' }, { status: 500 });
-    }
+    const apiBase = hasApi ? base : `${base}/api`;
 
-    const headers: HeadersInit = { 
+    const headers: HeadersInit = {
       Accept: 'application/json',
       Authorization: `Bearer ${token}`
     };
 
-    const altBase = hasApi ? base : `${base}/api`;
+    // Try upload endpoint
+    const uploadUrl = `${apiBase}${API_ENDPOINTS.FILES.UPLOAD}`;
+    console.log('[Upload] Attempting upload to:', uploadUrl);
 
-    const url1 = `${primaryBase}${API_ENDPOINTS.FILES.UPLOAD}`;
-    let r = await fetch(url1, { method: 'POST', body: fd, headers });
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      body: fd,
+      headers
+    });
+
     let data: any = null;
-    try {
-      data = await r.json();
-    } catch {}
+    const contentType = response.headers.get('content-type');
 
-    if (!r.ok) {
-      const url2 = `${altBase}${API_ENDPOINTS.FILES.UPLOAD}`;
-      r = await fetch(url2, { method: 'POST', body: fd, headers });
+    if (contentType?.includes('application/json')) {
       try {
-        data = await r.json();
-      } catch {}
-      if (!r.ok) {
-        return NextResponse.json(
-          { message: (data && data.message) || 'حدث خطأ ما', errors: data ? data.errors : null },
-          { status: r.status }
-        );
+        data = await response.json();
+      } catch {
+        console.error('[Upload] Failed to parse JSON response');
       }
     }
 
+    if (!response.ok) {
+      console.error('[Upload] Upload failed:', response.status, data);
+
+      // Try alternative URL without /api prefix
+      const altUrl = `${primaryBase}${API_ENDPOINTS.FILES.UPLOAD}`;
+      if (altUrl !== uploadUrl) {
+        console.log('[Upload] Trying alternative URL:', altUrl);
+        const altResponse = await fetch(altUrl, { method: 'POST', body: fd, headers });
+
+        if (altResponse.ok) {
+          const altContentType = altResponse.headers.get('content-type');
+          if (altContentType?.includes('application/json')) {
+            data = await altResponse.json().catch(() => null);
+          }
+          return NextResponse.json(data ?? { success: true }, { status: 200 });
+        }
+
+        // Parse error from alt response
+        const altErrorContentType = altResponse.headers.get('content-type');
+        if (altErrorContentType?.includes('application/json')) {
+          data = await altResponse.json().catch(() => data);
+        }
+      }
+
+      return NextResponse.json(
+        { message: data?.message || 'حدث خطأ أثناء رفع الصورة', errors: data?.errors },
+        { status: response.status }
+      );
+    }
+
+    console.log('[Upload] Upload successful');
     return NextResponse.json(data ?? { success: true }, { status: 200 });
-  } catch {
+  } catch (error) {
+    console.error('[Upload] Server error:', error);
     return NextResponse.json({ message: 'خطأ في الاتصال بالخادم' }, { status: 500 });
   }
 }

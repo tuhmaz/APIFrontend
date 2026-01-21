@@ -39,7 +39,7 @@ export default function ModernStatsCard({
 
   if (isLoading) {
     return (
-      <div className="stats-card-modern animate-pulse">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-card/80 backdrop-blur-sm p-6 shadow-sm animate-pulse">
         <div className="flex items-start justify-between">
           <div className="space-y-3 flex-1">
             <div className="h-4 bg-muted rounded w-1/2"></div>
@@ -57,12 +57,12 @@ export default function ModernStatsCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="stats-card-modern group cursor-pointer"
+      className="relative overflow-hidden rounded-2xl border border-border bg-card/80 backdrop-blur-sm p-6 shadow-sm transition-all duration-300 group cursor-pointer hover:shadow-lg"
       whileHover={{ y: -5 }}
     >
       <div className="relative z-10">
         <div className="flex justify-between items-start mb-4">
-          <div className={`p-3 rounded-xl bg-background/50 backdrop-blur-md border border-white/10 shadow-inner ${color}`}>
+          <div className={`p-3 rounded-xl bg-background/50 backdrop-blur-md border border-border/60 shadow-inner ${color}`}>
             {icon}
           </div>
           {changeType === 'increase' ? (

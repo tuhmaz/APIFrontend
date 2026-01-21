@@ -29,7 +29,7 @@ import {
   Home,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useSidebarStore, useAuthStore, useSettingsStore } from '@/store/useStore';
+import { useSidebarStore, useAuthStore, useSettingsStore, useThemeStore } from '@/store/useStore';
 
 interface MenuItem {
   title: string;
@@ -148,9 +148,9 @@ export default function Sidebar() {
   const { isOpen, toggleSidebar, setSidebar } = useSidebarStore();
   const { logout, user } = useAuthStore();
   const { siteName, siteLogo } = useSettingsStore();
+  const { isDarkMode, toggleDarkMode } = useThemeStore();
   const resolvedSiteName = siteName?.trim() || '';
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // دالة فحص الصلاحيات - تدعم الصلاحيات القديمة والجديدة
   const hasPermission = useCallback((permission?: string): boolean => {
@@ -238,10 +238,6 @@ export default function Sidebar() {
     return false;
   };
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
-  };
 
   return (
     <>
@@ -510,7 +506,7 @@ export default function Sidebar() {
 
           {/* Theme Toggle */}
           <button
-            onClick={toggleTheme}
+            onClick={toggleDarkMode}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all duration-200"
           >
             <div className="w-9 h-9 rounded-lg bg-muted/50 flex items-center justify-center">

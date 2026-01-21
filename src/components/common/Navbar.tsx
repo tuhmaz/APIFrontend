@@ -168,8 +168,6 @@ export default function Navbar({ initialSettings }: { initialSettings?: InitialS
                   sizes="(max-width: 768px) 150px, 200px"
                   className="h-full w-auto object-contain drop-shadow-sm"
                   style={{ width: 'auto', height: '100%' }}
-                  priority
-                  loading="eager"
                 />
               </motion.div>
             ) : (
