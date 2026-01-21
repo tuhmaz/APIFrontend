@@ -1,4 +1,6 @@
-import { ReactNode } from 'react';
+'use client';
+
+import { ReactNode, useState, useEffect } from 'react';
 import AnimatedSection from '../ui/AnimatedSection';
 
 interface SubjectsListWrapperProps {
@@ -12,10 +14,16 @@ interface SubjectsListWrapperProps {
 }
 
 export default function SubjectsListWrapper({ children, adSettings }: SubjectsListWrapperProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <>
       {/* First Ad Position - Below breadcrumb / above subjects */}
-      {(adSettings?.googleAdsDesktop || adSettings?.googleAdsMobile) && (
+      {isMounted && (adSettings?.googleAdsDesktop || adSettings?.googleAdsMobile) && (
         <AnimatedSection delay={0.15}>
           <div className="mb-8 relative overflow-hidden rounded-2xl bg-gray-50 border border-gray-100">
             {adSettings.googleAdsDesktop && (
@@ -38,7 +46,7 @@ export default function SubjectsListWrapper({ children, adSettings }: SubjectsLi
       {children}
 
       {/* Second Ad Position - After subjects list */}
-      {(adSettings?.googleAdsDesktop2 || adSettings?.googleAdsMobile2) && (
+      {isMounted && (adSettings?.googleAdsDesktop2 || adSettings?.googleAdsMobile2) && (
         <AnimatedSection delay={0.4}>
           <div className="mt-8 relative overflow-hidden rounded-2xl bg-gray-50 border border-gray-100">
             {adSettings.googleAdsDesktop2 && (

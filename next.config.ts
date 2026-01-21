@@ -38,10 +38,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'api.alemancenter.com',
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'alemancenter.com',
+        pathname: '/**',
       },
       {
         protocol: 'https',

@@ -183,6 +183,22 @@ export const articlesService = {
   },
 
   /**
+   * Toggle article status (publish/unpublish)
+   */
+  async toggleStatus(id: number | string, status: boolean, country: string = '1'): Promise<Article> {
+    // Use dedicated publish/unpublish endpoints
+    const endpoint = status
+      ? API_ENDPOINTS.ARTICLES.PUBLISH(id)
+      : API_ENDPOINTS.ARTICLES.UNPUBLISH(id);
+
+    const response = await apiClient.post<{ data: Article }>(
+      endpoint,
+      { database: country }
+    );
+    return (response.data as any).data || response.data;
+  },
+
+  /**
    * Get articles by class/grade level
    */
   async getByClass(gradeLevel: number | string, country: string = '1'): Promise<Article[]> {

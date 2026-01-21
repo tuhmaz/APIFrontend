@@ -40,6 +40,7 @@ export default function ArticlesPage() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('1');
+  const [statusFilter, setStatusFilter] = useState<boolean | undefined>(undefined);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -56,10 +57,45 @@ export default function ArticlesPage() {
   });
 
   const stats = [
-    { label: 'إجمالي المقالات', value: globalStats.total.toLocaleString(), change: '+0%', icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { label: 'إجمالي المشاهدات', value: globalStats.views.toLocaleString(), change: '+0%', icon: Eye, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-    { label: 'مقالات منشورة', value: globalStats.published.toLocaleString(), change: '+0%', icon: CheckCircle2, color: 'text-violet-500', bg: 'bg-violet-500/10' },
-    { label: 'مسودات', value: globalStats.drafts.toLocaleString(), change: '+0%', icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { 
+      label: 'إجمالي المقالات', 
+      value: globalStats.total.toLocaleString(), 
+      change: '+0%', 
+      icon: FileText, 
+      color: 'text-blue-500', 
+      bg: 'bg-blue-500/10',
+      action: () => setStatusFilter(undefined),
+      active: statusFilter === undefined
+    },
+    { 
+      label: 'إجمالي المشاهدات', 
+      value: globalStats.views.toLocaleString(), 
+      change: '+0%', 
+      icon: Eye, 
+      color: 'text-emerald-500', 
+      bg: 'bg-emerald-500/10'
+      // No action for views
+    },
+    { 
+      label: 'مقالات منشورة', 
+      value: globalStats.published.toLocaleString(), 
+      change: '+0%', 
+      icon: CheckCircle2, 
+      color: 'text-violet-500', 
+      bg: 'bg-violet-500/10',
+      action: () => setStatusFilter(true),
+      active: statusFilter === true
+    },
+    { 
+      label: 'مسودات', 
+      value: globalStats.drafts.toLocaleString(), 
+      change: '+0%', 
+      icon: Clock, 
+      color: 'text-amber-500', 
+      bg: 'bg-amber-500/10',
+      action: () => setStatusFilter(false),
+      active: statusFilter === false
+    },
   ];
 
   // Country name mapping with robust normalization and fallback to selectedCountry
@@ -93,6 +129,7 @@ export default function ArticlesPage() {
         page,
         per_page: 15,
         q: searchQuery || undefined,
+        status: statusFilter,
       });
       setArticles(response.data);
       setPagination(response.pagination);
@@ -101,12 +138,46 @@ export default function ArticlesPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCountry, searchQuery]);
+  }, [selectedCountry, searchQuery, statusFilter]);
 
   useEffect(() => {
     fetchArticles(1);
     fetchStats();
   }, [fetchArticles, fetchStats]);
+
+  const handleStatusToggle = async (id: number, currentStatus: boolean) => {
+    try {
+      // Optimistic update
+      setArticles(prev => prev.map(a => 
+        a.id === id ? { ...a, status: !currentStatus } : a
+      ));
+
+      await articlesService.toggleStatus(id, !currentStatus, selectedCountry);
+      
+      // Refresh stats to reflect changes
+      fetchStats();
+      
+      setAlertConfig({
+        title: 'تم التحديث',
+        message: `تم ${!currentStatus ? 'نشر' : 'إلغاء نشر'} المقال بنجاح.`,
+        variant: 'success',
+      });
+      setAlertOpen(true);
+    } catch (error) {
+      console.error('Status toggle failed', error);
+      // Revert optimistic update
+      setArticles(prev => prev.map(a => 
+        a.id === id ? { ...a, status: currentStatus } : a
+      ));
+      
+      setAlertConfig({
+        title: 'فشل التحديث',
+        message: 'حدث خطأ أثناء تحديث حالة المقال.',
+        variant: 'error',
+      });
+      setAlertOpen(true);
+    }
+  };
 
   const handleDeleteClick = async (id: number) => {
     setConfirmDeleteId(id);
@@ -181,7 +252,11 @@ export default function ArticlesPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="p-6 rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-md transition-shadow"
+            onClick={stat.action}
+            className={`p-6 rounded-2xl bg-card border shadow-sm hover:shadow-md transition-all
+              ${stat.action ? 'cursor-pointer hover:border-primary/50' : ''}
+              ${stat.active ? 'ring-2 ring-primary border-primary bg-primary/5' : 'border-border/50'}
+            `}
           >
             <div className="flex items-start justify-between">
               <div>
@@ -288,15 +363,21 @@ export default function ArticlesPage() {
                       </div>
                     )}
                     <div className="absolute top-3 right-3 flex gap-2">
-                      <span className={`px-2.5 py-1 rounded-lg text-xs font-medium backdrop-blur-md border border-white/10
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStatusToggle(article.id, !!article.status);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium backdrop-blur-md border border-white/10 transition-all hover:scale-105 active:scale-95 cursor-pointer
                         ${article.status 
-                          ? 'bg-green-500/20 text-green-600 dark:text-green-400' 
-                          : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                          ? 'bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/30' 
+                          : 'bg-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/30'
                         }
-                      `}>
-                        {article.status ? 'منشور' : 'مسودة'}
-                      </span>
-                    </div>
+                      `}
+                    >
+                      {article.status ? 'منشور' : 'مسودة'}
+                    </button>
+                  </div>
                   </div>
 
                   <div className="p-5 flex flex-col flex-1">
@@ -383,10 +464,15 @@ export default function ArticlesPage() {
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusToggle(article.id, !!article.status);
+                          }}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all hover:scale-105 active:scale-95 cursor-pointer
                           ${article.status 
-                            ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' 
-                            : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
+                            ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20 hover:bg-green-200 dark:hover:bg-green-500/20' 
+                            : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 hover:bg-amber-200 dark:hover:bg-amber-500/20'
                           }
                         `}>
                           {article.status ? (
@@ -400,7 +486,7 @@ export default function ArticlesPage() {
                               مسودة
                             </>
                           )}
-                        </span>
+                        </button>
                       </td>
                       <td className="py-4 px-6 text-sm text-foreground">
                         {toCountryName(article.country_id)}

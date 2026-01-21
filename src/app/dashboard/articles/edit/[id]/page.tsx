@@ -150,7 +150,8 @@ export default function EditArticlePage() {
                 keywords: articleData.keywords ? (Array.isArray(articleData.keywords) ? articleData.keywords.map((k: any) => k.keyword).join(', ') : articleData.keywords) : '',
                 file_category: attachedFile ? attachedFile.file_category : (articleData.file_category || 'study_plan'),
                 file_name: attachedFile ? attachedFile.file_name : (articleData.file_name || ''),
-                status: articleData.status !== undefined ? Boolean(articleData.status) : Boolean(articleData.is_published),
+                status: (articleData.status === true || articleData.status === 'true' || articleData.status === 1 || articleData.status === '1') || 
+                        (articleData.is_published === true || articleData.is_published === 'true' || articleData.is_published === 1 || articleData.is_published === '1'),
                 meta_description: articleData.meta_description
             });
 
@@ -756,27 +757,26 @@ export default function EditArticlePage() {
               {/* Publish Status Toggle */}
               <div className="bg-muted/30 p-4 rounded-xl border border-border/50 flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <label htmlFor="publish-status" className="text-sm font-semibold block">حالة النشر</label>
+                  <label htmlFor="publish-status" className="text-sm font-semibold block cursor-pointer">حالة النشر</label>
                   <p className="text-xs text-muted-foreground">تفعيل أو تعطيل ظهور المقالة للزوار</p>
                 </div>
-                <div className="relative inline-flex h-[28px] w-[52px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=checked]:bg-primary data-[state=unchecked]:bg-input">
-                    <input
-                        type="checkbox"
-                        id="publish-status"
-                        name="status"
-                        className="sr-only"
-                        checked={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.checked })}
-                    />
-                    <div
-                        onClick={() => setFormData({ ...formData, status: !formData.status })}
+                <button
+                    type="button"
+                    role="switch"
+                    aria-checked={formData.status}
+                    onClick={() => setFormData(prev => ({ ...prev, status: !prev.status }))}
+                    className={`relative inline-flex h-[28px] w-[52px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                        formData.status ? 'bg-primary' : 'bg-input'
+                    }`}
+                >
+                    <span
                         className={`pointer-events-none block h-6 w-6 rounded-full bg-background shadow-lg ring-0 transition-transform duration-200 ${
-                            formData.status ? 'translate-x-0 bg-primary' : '-translate-x-6'
+                            formData.status ? 'translate-x-0' : '-translate-x-6'
                         }`}
                     >
                         {formData.status && <CheckCircle2 className="w-full h-full p-1 text-primary" />}
-                    </div>
-                </div>
+                    </span>
+                </button>
               </div>
 
               <div className="space-y-3">
