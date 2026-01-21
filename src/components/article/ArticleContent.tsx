@@ -26,7 +26,7 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-export default function ArticleContent({ content, files, className, countryCode = 'jo', backLink }: Props) {
+export default function ArticleContent({ content, files, className, countryCode: _countryCode = 'jo', backLink }: Props) {
   // Sanitize content to prevent XSS
   let processedContent = DOMPurify.sanitize(content, {
     ADD_TAGS: ['iframe'],
