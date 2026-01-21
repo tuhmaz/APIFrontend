@@ -107,15 +107,20 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.alemancenter.com';
+  // Extract domain from API URL for preconnect
+  const apiDomain = apiUrl.replace(/\/api\/?$/, '');
+
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
-        {/* Preconnect to Google Fonts for better performance */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* DNS Prefetch for faster resolution */}
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        <link rel="dns-prefetch" href={apiDomain} />
 
-        {/* Preconnect to API */}
-        <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'} />
+        {/* Preconnect to API - will be used immediately */}
+        <link rel="preconnect" href={apiDomain} crossOrigin="anonymous" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}

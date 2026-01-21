@@ -1,0 +1,152 @@
+# ======================================
+# alemancenter.com - Robots.txt
+# Educational Platform for Jordan & Arab Countries
+# ======================================
+
+# Allow all search engines
+User-agent: *
+
+# Allow crawling main content
+Allow: /
+Allow: /jo/
+Allow: /sa/
+Allow: /eg/
+Allow: /ps/
+Allow: /about-us
+Allow: /contact
+Allow: /contact-us
+Allow: /services
+Allow: /members
+Allow: /search
+
+# Allow lessons and articles
+Allow: /*/lesson/
+Allow: /*/articles/
+Allow: /*/posts/
+Allow: /*/download/
+
+# Disallow admin/dashboard areas
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /auth/
+
+# Disallow internal pages
+Disallow: /*?*country=
+Disallow: /*?*page=
+Disallow: /*?*sort=
+Disallow: /*?*filter=
+
+# Disallow duplicate content paths
+Disallow: /classes
+
+# Block specific files
+Disallow: /*.json$
+Disallow: /*.xml$
+Disallow: /sitemap-*.xml
+
+# ======================================
+# Google Bot - Specific Rules
+# ======================================
+User-agent: Googlebot
+Allow: /
+Allow: /jo/
+Allow: /sa/
+Allow: /eg/
+Allow: /ps/
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /_next/
+Disallow: /login
+Disallow: /register
+
+# Allow Google to index images
+User-agent: Googlebot-Image
+Allow: /
+Allow: /storage/
+Disallow: /dashboard
+
+# ======================================
+# Bing Bot
+# ======================================
+User-agent: Bingbot
+Allow: /
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /_next/
+Disallow: /login
+Disallow: /register
+
+# ======================================
+# Yandex Bot
+# ======================================
+User-agent: Yandex
+Allow: /
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /_next/
+
+# ======================================
+# Baidu Bot
+# ======================================
+User-agent: Baiduspider
+Allow: /
+Disallow: /dashboard
+Disallow: /api/
+
+# ======================================
+# Block Bad Bots
+# ======================================
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: SearchmetricsBot
+Disallow: /
+
+User-agent: sistrix
+Disallow: /
+
+User-agent: SEOkicks-Robot
+Disallow: /
+
+User-agent: seoscanners
+Disallow: /
+
+User-agent: Screaming Frog
+Disallow: /
+
+# ======================================
+# Crawl Delay (for bots that respect it)
+# ======================================
+User-agent: *
+Crawl-delay: 1
+
+# ======================================
+# Sitemap Location
+# ======================================
+Sitemap: https://alemancenter.com/sitemap.xml
+Sitemap: https://alemancenter.com/sitemap-articles.xml
+Sitemap: https://alemancenter.com/sitemap-posts.xml
+
+# ======================================
+# Host Declaration
+# ======================================
+Host: https://alemancenter.com

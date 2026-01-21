@@ -191,27 +191,19 @@ export default function HomeContent({ country, classes, categories, initialSiteN
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-sm leading-tight"
-            >
+            {/* LCP Element - No animation delay for faster paint */}
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-sm leading-tight">
               منصة <span className="text-[#3498db] inline-block relative">
                 {resolvedSiteName}
                 <svg className="absolute w-full h-3 -bottom-1 left-0 text-[#3498db]/40" viewBox="0 0 100 10" preserveAspectRatio="none">
                   <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="2" fill="none" />
                 </svg>
               </span> التعليمية للمنهاج الدراسي في {country.name}
-            </motion.h1>
-            
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto font-light"
-            >
+            </h1>
+
+            <p className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto font-light">
               منصتك التعليمية الشاملة في {country.name}. اكتشف الدروس، الامتحانات، والخطط الدراسية بسهولة.
-            </motion.p>
+            </p>
             
             {showHeroButtons && (
             <motion.div 
