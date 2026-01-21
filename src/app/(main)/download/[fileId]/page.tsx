@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
 import { getStorageUrl, safeJsonLd } from '@/lib/utils';
@@ -11,13 +12,13 @@ import { ChevronLeft, Home, FileText } from 'lucide-react';
 
 interface Props {
   params: Promise<{
-    countryCode: string;
     fileId: string;
   }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 // Fetch file info with related article/post
-async function getFileInfo(fileId: string, countryCode: string) {
+async function getFileInfo(fileId: string, countryCode: string = 'jo') {
   try {
     const response = await apiClient.get<any>(
       API_ENDPOINTS.FILES.INFO(fileId),
@@ -31,7 +32,9 @@ async function getFileInfo(fileId: string, countryCode: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { countryCode, fileId } = await params;
+  const { fileId } = await params;
+  const cookieStore = await cookies();
+  const countryCode = cookieStore.get('country')?.value || 'jo';
 
   const data = await getFileInfo(fileId, countryCode);
 
@@ -71,13 +74,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [ogImage],
     },
     alternates: {
-      canonical: `/${countryCode}/download/${fileId}`,
+      canonical: `/download/${fileId}`,
     },
   };
 }
 
 export default async function DownloadPage({ params }: Props) {
-  const { countryCode, fileId } = await params;
+  const { fileId } = await params;
+  const cookieStore = await cookies();
+  const countryCode = cookieStore.get('country')?.value || 'jo';
 
   const data = await getFileInfo(fileId, countryCode);
 
@@ -124,9 +129,12 @@ export default async function DownloadPage({ params }: Props) {
     }
   };
 
-  const backLink = item
-    ? (type === 'post' ? `/${countryCode}/posts/${item.id}` : `/${countryCode}/articles/${item.id}`)
-    : `/${countryCode}`;
+  const backParamRaw = sp?.back;
+  const backParam = Array.isArray(backParamRaw) ? backParamRaw[0] : backParamRaw;
+
+  const backLink = backParam || (item
+    ? (type === 'post' ? `/${countryCode}/posts/${item.id}` : `/${countryCode}/lesson/articles/${item.id}`)
+    : `/${countryCode}`);
 
   // Determine download URL
   const isPostFile = type === 'post';

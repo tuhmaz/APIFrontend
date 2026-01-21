@@ -353,6 +353,7 @@ export default async function ArticlePage({ params }: Props) {
                   content={article.content}
                   files={article.files}
                   countryCode={countryCode}
+                  backLink={`/${countryCode}/lesson/articles/${article.id}`}
                 />
 
                 {/* SEO Content Block (Increases text density) */}

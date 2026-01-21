@@ -25,7 +25,7 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-export default function ArticleContent({ content, files, className, countryCode = 'jo' }: Props) {
+export default function ArticleContent({ content, files, className, countryCode = 'jo', backLink }: Props) {
   // Sanitize content to prevent XSS
   let processedContent = DOMPurify.sanitize(content, {
     ADD_TAGS: ['iframe'],
@@ -74,7 +74,7 @@ export default function ArticleContent({ content, files, className, countryCode 
                 </div>
                 
                 <a
-                  href={`/${countryCode}/download/${file.id}`}
+                  href={`/download/${file.id}${backLink ? `?back=${encodeURIComponent(backLink)}` : ''}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-lg shadow-primary/20"
