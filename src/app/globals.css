@@ -67,6 +67,10 @@
     color-scheme: light;
   }
 
+  html {
+    font-family: var(--font-sans);
+  }
+
   .dark {
     color-scheme: dark;
     --color-border: hsl(217.2 32.6% 17.5%);
@@ -101,6 +105,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

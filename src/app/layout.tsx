@@ -106,10 +106,11 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
         {/* Preconnect to Google Fonts - Critical for LCP */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${cairo.variable} antialiased min-h-screen`}
+        className={`${cairo.className} ${cairo.variable} antialiased min-h-screen`}
       >
         <ThemeInitializer />
         <ToastProvider />
