@@ -132,9 +132,37 @@ const nextConfig: NextConfig = {
           }
         ]
       },
-      // Cache headers for static assets
+      // Cache headers for static CSS files
       {
-        source: '/_next/static/:path*',
+        source: '/_next/static/css/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          },
+          {
+            key: 'Content-Type',
+            value: 'text/css; charset=utf-8'
+          }
+        ]
+      },
+      // Cache headers for static JS files
+      {
+        source: '/_next/static/chunks/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          },
+          {
+            key: 'Content-Type',
+            value: 'application/javascript; charset=utf-8'
+          }
+        ]
+      },
+      // Cache headers for static media (fonts, etc)
+      {
+        source: '/_next/static/media/:path*',
         headers: [
           {
             key: 'Cache-Control',
