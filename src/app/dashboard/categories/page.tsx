@@ -371,29 +371,33 @@ export default function CategoriesPage() {
   };
 
   useEffect(() => {
+    if (!isAuthorized) return;
     fetchCategories(1);
     fetchAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthorized]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     fetchCategories(1);
     fetchAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCountry]);
+  }, [selectedCountry, isAuthorized]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     const id = setTimeout(() => {
       fetchCategories(1);
     }, 300);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [searchQuery, isAuthorized]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     fetchCategories(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter]);
+  }, [statusFilter, isAuthorized]);
 
   // Permission check after all hooks
   if (isAuthorized === false) {

@@ -141,8 +141,9 @@ export default function SitemapPage() {
 
   // Load sitemap status
   useEffect(() => {
+    if (!isAuthorized) return;
     loadStatus();
-  }, [loadStatus, selectedDatabase]);
+  }, [loadStatus, selectedDatabase, isAuthorized]);
 
   if (isAuthorized === null) {
     return (

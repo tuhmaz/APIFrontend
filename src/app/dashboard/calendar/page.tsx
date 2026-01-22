@@ -66,6 +66,8 @@ export default function CalendarPage() {
 
   // Fetch Databases
   useEffect(() => {
+    if (!isAuthorized) return;
+
     const fetchDatabases = async () => {
       try {
         const dbs = await calendarService.getDatabases();
@@ -80,7 +82,7 @@ export default function CalendarPage() {
       }
     };
     fetchDatabases();
-  }, []);
+  }, [isAuthorized]);
 
   const fetchEvents = useCallback(async () => {
     if (!selectedDatabase) return;
@@ -118,8 +120,9 @@ export default function CalendarPage() {
 
   // Fetch Events when date or database changes
   useEffect(() => {
+    if (!isAuthorized) return;
     fetchEvents();
-  }, [fetchEvents]);
+  }, [fetchEvents, isAuthorized]);
 
   if (isAuthorized === null) {
     return (

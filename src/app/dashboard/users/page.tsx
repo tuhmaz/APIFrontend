@@ -184,9 +184,10 @@ export default function UsersPage() {
   }, [searchQuery, roleFilter, statusFilter]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     const timeout = setTimeout(() => fetchData(1), 300);
     return () => clearTimeout(timeout);
-  }, [fetchData]);
+  }, [fetchData, isAuthorized]);
 
   const handlePageChange = (page: number) => {
     fetchData(page);

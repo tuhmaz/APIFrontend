@@ -36,9 +36,8 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Only fetch if authorized (or null which means loading auth)
-    // We can also let the guard handle redirect, but to prevent API error:
-    if (isAuthorized === false) return;
+    // Only fetch if authorized
+    if (!isAuthorized) return;
 
     const fetchData = async () => {
       try {

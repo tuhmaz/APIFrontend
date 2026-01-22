@@ -105,8 +105,9 @@ export default function MessagesPage() {
   }, [activeTab]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     fetchMessages();
-  }, [fetchMessages]);
+  }, [fetchMessages, isAuthorized]);
 
 
 

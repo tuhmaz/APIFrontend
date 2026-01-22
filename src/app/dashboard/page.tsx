@@ -30,14 +30,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // Only fetch if authorized (or null which means loading auth)
-    if (isAuthorized === false) return;
+    if (!isAuthorized) return;
 
     const fetchData = async () => {
       try {
         // 1) بيانات لوحة التحكم الأساسية متاحة لكل من يملك صلاحية dashboard.view
         const dashboard = await dashboardService.getIndex();
         setDashboardData(dashboard);
-
+        
         // 2) بيانات تحليلات الزوار (visitor-analytics) للمستخدمين المخوّلين فقط
         let canViewVisitorAnalytics = false;
 

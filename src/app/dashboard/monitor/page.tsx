@@ -164,10 +164,12 @@ export default function MonitorPage() {
   }, []);
 
   useEffect(() => {
+    if (!isAuthorized) return;
+    
     fetchData();
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchData, isAuthorized]);
 
   useEffect(() => {
     const logIds = new Set(recentLogs.map((log) => log.id));

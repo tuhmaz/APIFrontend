@@ -36,6 +36,7 @@ export default function SchoolClassesPage() {
   );
 
   useEffect(() => {
+    if (!isAuthorized) return;
     const fetchClasses = async () => {
       try {
         setLoading(true);
@@ -48,7 +49,7 @@ export default function SchoolClassesPage() {
       }
     };
     fetchClasses();
-  }, [selectedCountry]);
+  }, [selectedCountry, isAuthorized]);
 
   if (isAuthorized === null) {
     return (

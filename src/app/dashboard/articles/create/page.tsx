@@ -116,6 +116,7 @@ export default function CreateArticlePage() {
   };
 
   useEffect(() => {
+    if (!isAuthorized) return;
     const fetchCreateData = async () => {
       try {
         setIsLoading(true);
@@ -131,11 +132,12 @@ export default function CreateArticlePage() {
       }
     };
     fetchCreateData();
-  }, [selectedCountry]);
+  }, [selectedCountry, isAuthorized]);
 
   const toDatabase = (id: '1' | '2' | '3' | '4') => (id === '1' ? 'jo' : id === '2' ? 'sa' : id === '3' ? 'eg' : 'ps');
 
   useEffect(() => {
+    if (!isAuthorized) return;
     const fetchSubjectsByClass = async () => {
       if (!formData.class_id) {
         setSubjects([]);
@@ -157,9 +159,10 @@ export default function CreateArticlePage() {
       }
     };
     fetchSubjectsByClass();
-  }, [formData.class_id, selectedCountry]);
+  }, [formData.class_id, selectedCountry, isAuthorized]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     const fetchSemestersBySubject = async () => {
       if (!formData.subject_id) {
         setSemesters([]);
@@ -181,9 +184,10 @@ export default function CreateArticlePage() {
       }
     };
     fetchSemestersBySubject();
-  }, [formData.subject_id, selectedCountry]);
+  }, [formData.subject_id, selectedCountry, isAuthorized]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     const t = setTimeout(async () => {
       const title = formData.title.trim();
       if (!title) {
@@ -198,7 +202,7 @@ export default function CreateArticlePage() {
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [formData.title, selectedCountry]);
+  }, [formData.title, selectedCountry, isAuthorized]);
 
   useEffect(() => {
     (window as any).$ = $;

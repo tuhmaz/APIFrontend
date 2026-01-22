@@ -50,8 +50,10 @@ export default function RolesPage() {
         setLoading(false);
       }
     };
-    fetchAll();
-  }, []);
+    if (isAuthorized) {
+      fetchAll();
+    }
+  }, [isAuthorized]);
 
   if (isAuthorized === null) {
     return (

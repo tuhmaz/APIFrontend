@@ -112,6 +112,7 @@ export default function EditArticlePage() {
 
   // Fetch initial data for edit
   useEffect(() => {
+    if (!isAuthorized) return;
     const fetchEditData = async () => {
       if (!id) return;
       try {
@@ -170,7 +171,7 @@ export default function EditArticlePage() {
       }
     };
     fetchEditData();
-  }, [id, selectedCountry]); 
+  }, [id, selectedCountry, isAuthorized]); 
   // Removed selectedCountry from dependency to avoid infinite loop if we update selectedCountry inside.
   // We only fetch once on mount (or id change).
 
@@ -184,6 +185,7 @@ export default function EditArticlePage() {
   // The initial load provides subjects for the *current* class. 
   // If user changes class, we need to fetch new subjects.
   useEffect(() => {
+    if (!isAuthorized) return;
     if (isLoading) return; // Don't trigger during initial load setup
     const fetchSubjectsByClass = async () => {
       if (!formData.class_id) {
@@ -213,10 +215,11 @@ export default function EditArticlePage() {
     // But we also setSubjects from initial load.
     // This might overwrite initial subjects with a new fetch. That's acceptable, as it ensures consistency.
     fetchSubjectsByClass();
-  }, [formData.class_id, selectedCountry, isLoading]);
+  }, [formData.class_id, selectedCountry, isLoading, isAuthorized]);
 
   // When subject changes, fetch semesters
   useEffect(() => {
+    if (!isAuthorized) return;
     if (isLoading) return;
     const fetchSemestersBySubject = async () => {
       if (!formData.subject_id) {
@@ -239,9 +242,10 @@ export default function EditArticlePage() {
       }
     };
     fetchSemestersBySubject();
-  }, [formData.subject_id, selectedCountry, isLoading]);
+  }, [formData.subject_id, selectedCountry, isLoading, isAuthorized]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     const t = setTimeout(async () => {
       const title = formData.title.trim();
       if (!title) {
@@ -268,7 +272,7 @@ export default function EditArticlePage() {
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [formData.title, selectedCountry, initialTitle]);
+  }, [formData.title, selectedCountry, initialTitle, isAuthorized]);
 
   useEffect(() => {
     (window as any).$ = $;

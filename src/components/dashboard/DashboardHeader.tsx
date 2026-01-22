@@ -15,7 +15,7 @@ import { getStorageUrl } from '@/lib/utils';
 export default function DashboardHeader() {
   const { isDarkMode, toggleDarkMode } = useThemeStore();
   const { toggleSidebar } = useSidebarStore();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -46,6 +46,9 @@ export default function DashboardHeader() {
   };
 
   useEffect(() => {
+    // Only fetch notifications if user is authenticated
+    if (!isAuthenticated || !user) return;
+
     const initialTimer = setTimeout(() => {
       void fetchLatestNotifications();
     }, 0);
@@ -57,7 +60,7 @@ export default function DashboardHeader() {
       clearTimeout(initialTimer);
       clearInterval(interval);
     };
-  }, []);
+  }, [isAuthenticated, user]);
 
   const markAsRead = async (id: string) => {
     try {

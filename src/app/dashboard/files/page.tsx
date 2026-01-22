@@ -242,17 +242,19 @@ export default function FilesPage() {
   };
 
   useEffect(() => {
+    if (!isAuthorized) return;
     fetchFiles(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthorized]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     const id = setTimeout(() => {
       fetchFiles(1);
     }, 300);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, isAuthorized]);
 
   const filterByCategory = (file: FileItem) =>
     selectedCategory === 'all'

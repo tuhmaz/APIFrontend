@@ -130,16 +130,18 @@ export default function SecurityPage() {
   }, [searchQuery, filters, pagination.per_page]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     fetchOverview();
     fetchLogs(1);
-  }, [fetchOverview, fetchLogs]);
+  }, [fetchOverview, fetchLogs, isAuthorized]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     const debounce = setTimeout(() => {
       fetchLogs(1);
     }, 500);
     return () => clearTimeout(debounce);
-  }, [searchQuery, filters, fetchLogs]);
+  }, [searchQuery, filters, fetchLogs, isAuthorized]);
 
   if (isAuthorized === null) {
     return (

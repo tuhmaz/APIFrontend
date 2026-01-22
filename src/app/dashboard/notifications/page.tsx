@@ -49,8 +49,9 @@ export default function NotificationsPage() {
   };
 
   useEffect(() => {
+    if (!isAuthorized) return;
     fetchNotifications();
-  }, []);
+  }, [isAuthorized]);
 
   if (isAuthorized === null) {
     return null;

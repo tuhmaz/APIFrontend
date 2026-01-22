@@ -40,6 +40,7 @@ export default function SubjectsPage() {
   );
 
   useEffect(() => {
+    if (!isAuthorized) return;
     const fetchSubjects = async () => {
       try {
         setLoading(true);
@@ -52,7 +53,7 @@ export default function SubjectsPage() {
       }
     };
     fetchSubjects();
-  }, [selectedCountry]);
+  }, [selectedCountry, isAuthorized]);
 
   if (isAuthorized === null) {
     return (
