@@ -74,6 +74,7 @@ export default function SitemapPage() {
   const [deletingType, setDeletingType] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ type: string; database: string } | null>(null);
+  const frontendBaseUrl = process.env.NEXT_PUBLIC_URL || API_CONFIG.BASE_URL.replace('/api', '');
 
   // Define loadStatus before useEffect
   const loadStatus = useCallback(async () => {
@@ -368,7 +369,7 @@ export default function SitemapPage() {
                     </code>
                   </div>
                   <a
-                    href={`${API_CONFIG.BASE_URL.replace('/api', '')}/storage/sitemaps/sitemap_index_${selectedDatabase}.xml`}
+                    href={`${frontendBaseUrl}/storage/sitemaps/sitemap_index_${selectedDatabase}.xml`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

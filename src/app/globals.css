@@ -108,6 +108,13 @@
     font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  :lang(ar) {
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-break: auto;
+    hyphens: none;
+  }
 }
 
 /* Utilities */
@@ -148,5 +155,9 @@
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: color-mix(in srgb, var(--color-muted-foreground), transparent 50%);
+  }
+
+  .bidi-plaintext {
+    unicode-bidi: plaintext;
   }
 }

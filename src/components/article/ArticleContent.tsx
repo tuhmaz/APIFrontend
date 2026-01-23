@@ -63,7 +63,8 @@ export default function ArticleContent({ content, files, className, backLink }: 
                   </div>
                   <div className="min-w-0 flex-1">
                     <h4 
-                      className="font-medium text-gray-900 mb-1 group-hover:text-primary transition-colors whitespace-normal break-all"
+                      className="font-medium text-gray-900 mb-1 group-hover:text-primary transition-colors whitespace-normal break-words bidi-plaintext"
+                      dir="auto"
                     >
                       {file.file_name || 'ملف للتحميل'}
                     </h4>

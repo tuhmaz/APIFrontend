@@ -64,7 +64,7 @@ export default function DownloadPageContent({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="bg-gray-50 p-4 rounded-xl">
             <p className="text-sm text-gray-500 mb-1">اسم الملف</p>
-            <p className="font-semibold text-gray-900 break-words">{fileName}</p>
+            <p className="font-semibold text-gray-900 break-words bidi-plaintext" dir="auto">{fileName}</p>
           </div>
 
           <div className="bg-gray-50 p-4 rounded-xl">

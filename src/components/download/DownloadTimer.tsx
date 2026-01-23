@@ -47,7 +47,7 @@ export default function DownloadTimer({ fileId, countryCode, fileName, fileSize,
         <FileText size={40} />
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-4 break-all whitespace-normal leading-relaxed px-4" dir="ltr">{fileName}</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-4 break-words whitespace-normal leading-relaxed px-4 bidi-plaintext" dir="auto">{fileName}</h2>
       <div className="flex items-center justify-center gap-4 text-gray-500 mb-8 text-sm">
         <span className="bg-gray-100 px-3 py-1 rounded-full">{fileType || 'FILE'}</span>
         <span>•</span>

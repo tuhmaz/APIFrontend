@@ -32,8 +32,9 @@ export default function ClassHeader({ title }: ClassHeaderProps) {
             <motion.h1 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-4xl md:text-5xl font-bold text-white mb-8 break-all whitespace-normal leading-relaxed px-4"
+              className="text-4xl md:text-5xl font-bold text-white mb-8 break-words whitespace-normal leading-relaxed px-4 bidi-plaintext"
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+              dir="auto"
             >
               {title}
             </motion.h1>

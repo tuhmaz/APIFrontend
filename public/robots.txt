@@ -3,6 +3,7 @@
 # Educational Platform for Jordan & Arab Countries
 # ======================================
 
+
 # Allow all search engines
 User-agent: *
 
@@ -48,8 +49,6 @@ Disallow: /classes
 
 # Block specific files
 Disallow: /*.json$
-Disallow: /*.xml$
-Disallow: /sitemap-*.xml
 
 # ======================================
 # Google Bot - Specific Rules
@@ -142,9 +141,13 @@ Crawl-delay: 1
 # ======================================
 # Sitemap Location
 # ======================================
-Sitemap: https://alemancenter.com/sitemap.xml
-Sitemap: https://alemancenter.com/sitemap-articles.xml
-Sitemap: https://alemancenter.com/sitemap-posts.xml
+Sitemap: https://alemancenter.com/storage/sitemaps/sitemap_index_jo.xml
+Sitemap: https://alemancenter.com/storage/sitemaps/sitemap_index_sa.xml
+Sitemap: https://alemancenter.com/storage/sitemaps/sitemap_index_eg.xml
+Sitemap: https://alemancenter.com/storage/sitemaps/sitemap_index_ps.xml
+Sitemap: https://alemancenter.com/storage/sitemaps/sitemap_post_jo.xml
+Sitemap: https://alemancenter.com/storage/sitemaps/sitemap_static_jo.xml
+
 
 # ======================================
 # Host Declaration
