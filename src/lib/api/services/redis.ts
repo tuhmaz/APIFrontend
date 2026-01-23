@@ -28,7 +28,7 @@ export const redisService = {
    * Get Redis server info
    */
   async getInfo(): Promise<RedisInfo> {
-    const response = await apiClient.get<{ data: { data: RedisInfo } }>(API_ENDPOINTS.REDIS.INFO);
+    const response = await apiClient.get<{ data: RedisInfo }>(API_ENDPOINTS.REDIS.INFO);
     return response.data.data;
   },
 
