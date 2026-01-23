@@ -98,7 +98,10 @@ export const postsService = {
             formData.append('attachments[]', file);
           });
         } else if (value instanceof File) {
-          formData.append(key, value);
+          // new_image for updating the image
+          formData.append(key === 'image' ? 'new_image' : key, value);
+        } else if (key === 'image' && typeof value === 'string') {
+          // Skip sending image URL string
         } else if (typeof value === 'boolean') {
           formData.append(key, value ? '1' : '0');
         } else {
@@ -112,6 +115,18 @@ export const postsService = {
       formData
     );
     return (response.data as any).data || response.data;
+  },
+
+  async isTitleUnique(title: string, country: string = '1'): Promise<boolean> {
+    if (!title.trim()) return true;
+    const response = await apiClient.get<PaginatedResponse<Post>>(
+      API_ENDPOINTS.POSTS.LIST,
+      { country, search: title, per_page: 20 }
+    );
+    // @ts-ignore
+    const list = response.data?.data || (Array.isArray(response.data) ? response.data : []) || [];
+    const found = list.some((p: Post) => (p.title || '').trim().toLowerCase() === title.trim().toLowerCase());
+    return !found;
   },
 
   /**

@@ -31,6 +31,7 @@ import { useThemeStore, useSettingsStore } from '@/store/useStore';
 import { cn } from '@/lib/utils';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
+import { settingsService } from '@/lib/api/services/settings';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
 
@@ -248,10 +249,22 @@ export default function SettingsPage() {
     try {
       setIsTesting(true);
       setSmtpTestResult(null);
-      const response = await apiClient.post<{ result: { success: boolean; message: string } }>(
-        API_ENDPOINTS.SETTINGS.TEST_SMTP
-      );
-      setSmtpTestResult(response.data?.result || { success: false, message: 'فشل في الاختبار' });
+      // Pass current settings to test (host, port, username, password, encryption)
+      const smtpSettings = {
+        host: settings.mail_host,
+        port: settings.mail_port,
+        username: settings.mail_username,
+        password: settings.mail_password,
+        encryption: settings.mail_encryption,
+        from_address: settings.mail_from_address,
+        from_name: settings.mail_from_name
+      };
+      
+      const response = await settingsService.testSmtp(smtpSettings);
+      setSmtpTestResult({
+        success: response.success,
+        message: response.message || response.error || 'تمت العملية',
+      });
     } catch (error: any) {
       setSmtpTestResult({ success: false, message: error.message || 'فشل في اختبار الاتصال' });
     } finally {
@@ -264,7 +277,18 @@ export default function SettingsPage() {
 
     try {
       setIsSendingTest(true);
-      await apiClient.post(API_ENDPOINTS.SETTINGS.SEND_TEST_EMAIL, { email: testEmail });
+      // Pass current settings to ensure we test what's in the form
+      const smtpSettings = {
+        host: settings.mail_host,
+        port: settings.mail_port,
+        username: settings.mail_username,
+        password: settings.mail_password,
+        encryption: settings.mail_encryption,
+        from_address: settings.mail_from_address,
+        from_name: settings.mail_from_name
+      };
+
+      await settingsService.sendTestEmail(testEmail, smtpSettings);
       setMessage({ type: 'success', text: 'تم إرسال البريد التجريبي بنجاح' });
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'فشل في إرسال البريد التجريبي' });

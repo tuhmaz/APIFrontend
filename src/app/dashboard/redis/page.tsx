@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Database, 
@@ -17,7 +17,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import DataTable from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
-import { redisService, RedisKey, RedisInfo } from '@/lib/api/services/redis';
+import { redisService, RedisKey, RedisInfo, RedisInfoSection } from '@/lib/api/services/redis';
 import { toast } from 'react-hot-toast';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
@@ -67,6 +67,37 @@ export default function RedisPage() {
       setLoading(false);
     }
   }, []);
+
+  const getSection = useCallback((infoData: RedisInfo | null, section: string): RedisInfoSection | null => {
+    if (!infoData) return null;
+    const value = infoData[section];
+    if (value && typeof value === 'object') {
+      return value as RedisInfoSection;
+    }
+    const hasSections = Object.values(infoData).some((entry) => entry && typeof entry === 'object');
+    if (hasSections) {
+      return null;
+    }
+    return infoData as RedisInfoSection;
+  }, []);
+
+  const infoEntries = useMemo(() => {
+    if (!info) return [];
+    const entries: Array<[string, string]> = [];
+    Object.entries(info).forEach(([key, value]) => {
+      if (value && typeof value === 'object') {
+        Object.entries(value as RedisInfoSection).forEach(([subKey, subVal]) => {
+          entries.push([`${key}.${subKey}`, String(subVal)]);
+        });
+      } else {
+        entries.push([key, String(value ?? '')]);
+      }
+    });
+    return entries;
+  }, [info]);
+
+  const serverInfo = getSection(info, 'Server');
+  const memoryInfo = getSection(info, 'Memory');
 
   const handleAddKey = async () => {
     try {
@@ -264,7 +295,7 @@ export default function RedisPage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Version</p>
-                    <h3 className="text-2xl font-bold">{info?.redis_version || '-'}</h3>
+                    <h3 className="text-2xl font-bold">{serverInfo?.redis_version || '-'}</h3>
                   </div>
                 </div>
               </CardContent>
@@ -278,7 +309,7 @@ export default function RedisPage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Uptime</p>
-                    <h3 className="text-2xl font-bold">{info?.uptime_in_days || '0'} days</h3>
+                    <h3 className="text-2xl font-bold">{serverInfo?.uptime_in_days || '0'} days</h3>
                   </div>
                 </div>
               </CardContent>
@@ -292,7 +323,7 @@ export default function RedisPage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Memory Used</p>
-                    <h3 className="text-2xl font-bold">{info?.used_memory_human || '-'}</h3>
+                    <h3 className="text-2xl font-bold">{memoryInfo?.used_memory_human || '-'}</h3>
                   </div>
                 </div>
               </CardContent>
@@ -305,7 +336,7 @@ export default function RedisPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                  {info && Object.entries(info).map(([k, v]) => (
+                  {infoEntries.map(([k, v]) => (
                     <div key={k} className="flex justify-between p-2 border rounded hover:bg-muted/50">
                       <span className="font-medium text-muted-foreground truncate" title={k}>{k}</span>
                       <span className="font-mono truncate ml-2" title={v}>{v}</span>

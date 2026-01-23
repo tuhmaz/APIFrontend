@@ -5,6 +5,7 @@ import $ from 'jquery';
 import 'summernote/dist/summernote-lite.css';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Image from '@/components/common/AppImage';
+import { toast } from 'react-hot-toast';
 import { Save, FileText, Tag, Image as ImageIcon, Upload } from 'lucide-react';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -12,7 +13,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { postsService, categoriesService, COUNTRIES } from '@/lib/api/services';
 import type { FileItem } from '@/types';
-import { getStorageUrl } from '@/lib/utils';
+import { getStorageUrl, extractError } from '@/lib/utils';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
 
@@ -32,6 +33,9 @@ export default function EditPostPage() {
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<FileItem[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState<string | undefined>(undefined);
+  const [isTitleDuplicate, setIsTitleDuplicate] = useState(false);
+  const [isCheckingTitle, setIsCheckingTitle] = useState(false);
+  const [initialTitle, setInitialTitle] = useState('');
 
   const [formData, setFormData] = useState<{
     title: string;
@@ -59,6 +63,31 @@ export default function EditPostPage() {
     () => categories.map((c) => ({ value: c.id, label: c.name })),
     [categories]
   );
+
+  useEffect(() => {
+    if (!isAuthorized) return;
+    const t = setTimeout(async () => {
+      const title = formData.title.trim();
+      if (!title) {
+        setIsTitleDuplicate(false);
+        return;
+      }
+      if (title === initialTitle) {
+        setIsTitleDuplicate(false);
+        return;
+      }
+      setIsCheckingTitle(true);
+      try {
+        const unique = await postsService.isTitleUnique(title, selectedCountry);
+        setIsTitleDuplicate(!unique);
+      } catch {
+        setIsTitleDuplicate(false);
+      } finally {
+        setIsCheckingTitle(false);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [formData.title, selectedCountry, initialTitle, isAuthorized]);
 
   useEffect(() => {
     (window as any).$ = $;
@@ -92,6 +121,7 @@ export default function EditPostPage() {
         setExistingAttachments(Array.isArray((post as any).attachments) ? (post as any).attachments : []);
         const imageSrc = getStorageUrl((post as any).image_url || (post as any).image);
         setCurrentImageUrl(imageSrc);
+        setInitialTitle(post.title || '');
         setFormData({
           title: post.title || '',
           content: post.content || '',
@@ -282,11 +312,13 @@ export default function EditPostPage() {
 
   const canSubmit =
     (formData.title || '').trim() !== '' &&
+    (formData.title || '').length <= 60 &&
     (formData.content || '').trim() !== '' &&
-    !!formData.category_id;
+    !!formData.category_id &&
+    !isTitleDuplicate;
 
   const handleSubmit = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit || isTitleDuplicate) return;
     try {
       setIsSubmitting(true);
       await postsService.update(id, {
@@ -301,9 +333,12 @@ export default function EditPostPage() {
         image: formData.image,
         attachments: formData.attachments,
       });
+      toast.success('تم تعديل المنشور بنجاح');
       router.push('/dashboard/posts');
     } catch (e) {
       console.error(e);
+      const errorInfo = extractError(e);
+      toast.error(errorInfo.message || 'حدث خطأ أثناء تعديل المنشور');
       setIsSubmitting(false);
     }
   };
@@ -374,6 +409,15 @@ export default function EditPostPage() {
                 value={formData.title}
                 onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                 placeholder="أدخل عنوان المنشور"
+                error={
+                  isTitleDuplicate 
+                    ? 'هذا العنوان مستخدم مسبقاً' 
+                    : isCheckingTitle 
+                      ? 'جاري التحقق...' 
+                      : (formData.title || '').length > 60 
+                        ? `العنوان طويل جداً (${(formData.title || '').length}/60)` 
+                        : undefined
+                }
               />
               <div className="space-y-2">
                 <span className="block text-sm font-medium mb-2">المحتوى</span>

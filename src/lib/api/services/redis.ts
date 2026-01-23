@@ -6,8 +6,9 @@ export interface RedisKey {
   ttl: number;
 }
 
+export type RedisInfoSection = Record<string, string>;
 export interface RedisInfo {
-  [key: string]: string;
+  [key: string]: string | RedisInfoSection;
 }
 
 export const redisService = {
@@ -28,7 +29,7 @@ export const redisService = {
    */
   async getInfo(): Promise<RedisInfo> {
     const response = await apiClient.get<{ data: { data: RedisInfo } }>(API_ENDPOINTS.REDIS.INFO);
-    return response.data.data.data;
+    return response.data.data;
   },
 
   /**

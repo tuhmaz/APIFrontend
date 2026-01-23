@@ -94,13 +94,37 @@ export default function SitemapPage() {
     try {
       setIsGenerating(true);
       setMessage(null);
-      await apiClient.post(API_ENDPOINTS.SITEMAP.GENERATE_ALL, {
-        database: selectedDatabase,
+
+      // استخدام fetch مباشرة مع timeout أطول لعملية توليد الخريطة
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 دقائق
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.SITEMAP.GENERATE_ALL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ database: selectedDatabase }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.message || 'فشل في توليد خرائط الموقع');
+      }
+
       setMessage({ type: 'success', text: 'تم توليد جميع خرائط الموقع بنجاح' });
       loadStatus();
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'فشل في توليد خرائط الموقع' });
+      const errorMessage = error.name === 'AbortError'
+        ? 'انتهت مهلة العملية - جاري المحاولة في الخلفية، يرجى الانتظار'
+        : (error.message || 'فشل في توليد خرائط الموقع');
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setIsGenerating(false);
     }

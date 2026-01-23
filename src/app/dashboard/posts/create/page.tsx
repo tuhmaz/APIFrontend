@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import $ from 'jquery';
 import 'summernote/dist/summernote-lite.css';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 import { Save, FileText, Tag, Image as ImageIcon, Upload } from 'lucide-react';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -12,6 +13,7 @@ import Select from '@/components/ui/Select';
 import { postsService, categoriesService, COUNTRIES } from '@/lib/api/services';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
+import { extractError } from '@/lib/utils';
 
 export default function CreatePostPage() {
   const { isAuthorized } = usePermissionGuard('manage posts');
@@ -37,6 +39,8 @@ export default function CreatePostPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<'1' | '2' | '3' | '4'>('1');
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [isTitleDuplicate, setIsTitleDuplicate] = useState(false);
+  const [isCheckingTitle, setIsCheckingTitle] = useState(false);
 
   const [formData, setFormData] = useState<{
     title: string;
@@ -100,6 +104,27 @@ export default function CreatePostPage() {
     };
     loadCategories();
   }, [selectedCountry]);
+
+  useEffect(() => {
+    if (!isAuthorized) return;
+    const t = setTimeout(async () => {
+      const title = formData.title.trim();
+      if (!title) {
+        setIsTitleDuplicate(false);
+        return;
+      }
+      setIsCheckingTitle(true);
+      try {
+        const unique = await postsService.isTitleUnique(title, selectedCountry);
+        setIsTitleDuplicate(!unique);
+      } catch {
+        setIsTitleDuplicate(false);
+      } finally {
+        setIsCheckingTitle(false);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [formData.title, selectedCountry, isAuthorized]);
 
   useEffect(() => {
     if (!summernoteReady || !editorRef.current || isLoading) return;
@@ -280,11 +305,13 @@ export default function CreatePostPage() {
 
   const canSubmit =
     formData.title.trim() !== '' &&
+    formData.title.length <= 60 &&
     formData.content.trim() !== '' &&
-    !!formData.category_id;
+    !!formData.category_id &&
+    !isTitleDuplicate;
 
   const handleSubmit = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit || isTitleDuplicate) return;
     try {
       setIsSubmitting(true);
       await postsService.create({
@@ -299,9 +326,12 @@ export default function CreatePostPage() {
         image: formData.image,
         attachments: formData.attachments,
       });
+      toast.success('تم إنشاء المنشور بنجاح');
       router.push('/dashboard/posts');
     } catch (e) {
       console.error(e);
+      const errorInfo = extractError(e);
+      toast.error(errorInfo.message || 'حدث خطأ أثناء إنشاء المنشور');
       setIsSubmitting(false);
     }
   };
@@ -381,6 +411,15 @@ export default function CreatePostPage() {
                 value={formData.title}
                 onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                 placeholder="أدخل عنوان المنشور"
+                error={
+                  isTitleDuplicate 
+                    ? 'هذا العنوان مستخدم مسبقاً' 
+                    : isCheckingTitle 
+                      ? 'جاري التحقق...' 
+                      : formData.title.length > 60 
+                        ? `العنوان طويل جداً (${formData.title.length}/60)` 
+                        : undefined
+                }
               />
               <div className="space-y-2">
                 <span className="block text-sm font-medium mb-2">المحتوى</span>

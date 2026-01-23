@@ -80,8 +80,15 @@ export default function NotificationsDropdown() {
   };
 
   const getLink = (notification: Notification) => {
-    if (notification.data.action_url) return notification.data.action_url;
-    if (notification.data.url) return notification.data.url;
+    let url = notification.data.action_url || notification.data.url;
+
+    if (url) {
+      // Fix article links to point to public interface instead of dashboard
+      if (url.includes('/dashboard/articles/')) {
+        return url.replace('/dashboard/articles/', '/jo/lesson/articles/');
+      }
+      return url;
+    }
     
     // Fallbacks
     if (notification.type.includes('Message')) return '/dashboard/messages/inbox';

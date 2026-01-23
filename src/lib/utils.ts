@@ -90,3 +90,16 @@ export function getStorageUrl(path: string | undefined | null): string | undefin
 export function safeJsonLd(json: any): string {
   return JSON.stringify(json).replace(/</g, '\\u003c');
 }
+
+export function extractError(err: unknown) {
+  if (err && typeof err === 'object') {
+    const e = err as any;
+    return {
+      status: e.status ?? e.response?.status ?? undefined,
+      message: e.message ?? e.response?.data?.message ?? 'تعذر تنفيذ العملية',
+      errors: e.errors ?? e.response?.data?.errors ?? undefined,
+      name: e.name ?? undefined,
+    };
+  }
+  return { message: String(err || 'حدث خطأ غير متوقع') };
+}

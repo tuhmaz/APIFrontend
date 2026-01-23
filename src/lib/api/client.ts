@@ -2,6 +2,7 @@ import { API_CONFIG } from './config';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
+  timeout?: number;
 }
 
 interface ApiResponse<T> {
@@ -54,13 +55,14 @@ class ApiClient {
   private async fetchWithRetry(
     url: string,
     options: RequestInit,
-    retries: number = this.maxRetries
+    retries: number = this.maxRetries,
+    timeout: number = this.requestTimeout
   ): Promise<Response> {
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        const response = await this.fetchWithTimeout(url, options);
+        const response = await this.fetchWithTimeout(url, options, timeout);
         return response;
       } catch (error: any) {
         lastError = error;
@@ -169,7 +171,7 @@ class ApiClient {
     endpoint: string,
     options: RequestOptions = {}
   ): Promise<ApiResponse<T>> {
-    const { params, ...fetchOptions } = options;
+    const { params, timeout, ...fetchOptions } = options;
     const url = this.buildUrl(endpoint, params);
 
     const headers: HeadersInit = {
@@ -225,7 +227,7 @@ class ApiClient {
 
     try {
       // Use retry mechanism for better reliability
-      const response = await this.fetchWithRetry(url, fetchConfig);
+      const response = await this.fetchWithRetry(url, fetchConfig, this.maxRetries, timeout);
 
       let data: any;
       try {

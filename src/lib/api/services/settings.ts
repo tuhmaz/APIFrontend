@@ -75,9 +75,11 @@ export const settingsService = {
   /**
    * Test SMTP connection
    */
-  async testSmtp(): Promise<SmtpTestResult> {
+  async testSmtp(data?: any): Promise<SmtpTestResult> {
     const response = await apiClient.post<{ data: { result: SmtpTestResult } }>(
-      API_ENDPOINTS.SETTINGS.TEST_SMTP
+      API_ENDPOINTS.SETTINGS.TEST_SMTP,
+      data,
+      { timeout: 60000 } // 60 seconds timeout for SMTP test
     );
     return response.data.data.result;
   },
@@ -85,10 +87,12 @@ export const settingsService = {
   /**
    * Send test email via SMTP
    */
-  async sendTestEmail(email: string): Promise<{ message: string }> {
+  async sendTestEmail(email: string, smtpSettings?: any): Promise<{ message: string }> {
+    const payload = { email, ...smtpSettings };
     const response = await apiClient.post<{ data: { message: string } }>(
       API_ENDPOINTS.SETTINGS.SEND_TEST_EMAIL,
-      { email }
+      payload,
+      { timeout: 60000 } // 60 seconds timeout for email sending
     );
     return response.data.data;
   },

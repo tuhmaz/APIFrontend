@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import $ from 'jquery';
 import 'summernote/dist/summernote-lite.css';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -423,6 +424,7 @@ export default function CreateArticlePage() {
 
   const canSubmit =
     formData.title.trim() !== '' &&
+    formData.title.length <= 60 &&
     (formData.content || '').trim() !== '' &&
     !!formData.class_id &&
     !!formData.subject_id &&
@@ -443,9 +445,12 @@ export default function CreateArticlePage() {
               ? formData.meta_description!.trim()
               : generateMetaFromContent(formData.content || '', formData.title, formData.keywords);
       await articlesService.create({ ...formData, meta_description: computedMeta });
+      toast.success('تم إنشاء المقال بنجاح');
       router.push('/dashboard/articles');
     } catch (e) {
       console.error(e);
+      const errorInfo = extractError(e);
+      toast.error(errorInfo.message || 'حدث خطأ أثناء إنشاء المقال');
       setIsSubmitting(false);
     }
   };
@@ -557,7 +562,13 @@ export default function CreateArticlePage() {
                 onChange={(e) =>
                   setFormData((prev: ArticleFormData) => ({ ...prev, title: e.target.value }))
                 }
-                error={isTitleDuplicate ? 'هذا العنوان مستخدم مسبقاً' : undefined}
+                error={
+                  isTitleDuplicate 
+                    ? 'هذا العنوان مستخدم مسبقاً' 
+                    : formData.title.length > 60 
+                      ? `العنوان طويل جداً (${formData.title.length}/60)` 
+                      : undefined
+                }
                 required
                 className="text-lg"
               />

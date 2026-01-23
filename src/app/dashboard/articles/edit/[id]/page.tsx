@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import $ from 'jquery';
 import 'summernote/dist/summernote-lite.css';
 import { useRouter, useParams } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -494,10 +495,12 @@ export default function EditArticlePage() {
 
       await articlesService.update(id, { ...formData, meta_description: computedMeta });
       
+      toast.success('تم تحديث المقال بنجاح');
       router.push('/dashboard/articles');
     } catch (e) {
       console.error(e);
-      // Handle error display
+      const errorInfo = extractError(e);
+      toast.error(errorInfo.message || 'حدث خطأ أثناء تحديث المقال');
       setIsSubmitting(false);
     }
   };
@@ -506,6 +509,7 @@ export default function EditArticlePage() {
   // class_id, subject_id, semester_id are already set from the loaded article
   const canSubmit =
     formData.title.trim().length > 0 &&
+    formData.title.length <= 60 &&
     (formData.content || '').trim().length > 0;
 
   // Debug: Log form validation state
@@ -644,7 +648,9 @@ export default function EditArticlePage() {
                     ? 'هذا العنوان مستخدم مسبقاً'
                     : isCheckingTitle
                     ? 'جاري التحقق...'
-                    : undefined
+                    : formData.title.length > 60
+                      ? `العنوان طويل جداً (${formData.title.length}/60)`
+                      : undefined
                 }
                 required
                 className="text-lg"
