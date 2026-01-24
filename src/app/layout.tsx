@@ -104,6 +104,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getPublicSettings();
+  const gaId =
+    (settings.google_analytics_id || settings.google_analytics || '').toString().trim() ||
+    (process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID || '').toString().trim() ||
+    (process.env.NEXT_PUBLIC_GA_ID || '').toString().trim();
 
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
@@ -115,7 +119,7 @@ export default async function RootLayout({
       <body
         className={`${cairo.className} ${cairo.variable} antialiased min-h-screen`}
       >
-        <GoogleAnalytics gaId={settings.google_analytics_id} />
+        <GoogleAnalytics gaId={gaId} />
         <ThemeInitializer />
         <ToastProvider />
         <ResourcePreloader />

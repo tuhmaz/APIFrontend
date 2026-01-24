@@ -624,6 +624,9 @@ function TrafficTab({ visitors }: { visitors: VisitorStats | null }) {
 
   // Derive Data
   const activeVisitors = visitors?.active_visitors || [];
+  const totalActive = visitors?.current ?? activeVisitors.length;
+  const totalMembers = visitors?.current_members ?? activeVisitors.filter(v => v.is_member).length;
+  const totalGuests = visitors?.current_guests ?? activeVisitors.filter(v => !v.is_member).length;
   const uniqueCountries = Array.from(new Set(activeVisitors.map(v => v.country).filter(Boolean))).sort();
 
   const filteredVisitors = activeVisitors.filter(visitor => {
@@ -660,21 +663,21 @@ function TrafficTab({ visitors }: { visitors: VisitorStats | null }) {
         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
            <div>
              <p className="text-gray-500 text-sm font-medium">إجمالي المتصلين</p>
-             <h3 className="text-2xl font-bold text-gray-900 mt-1">{activeVisitors.length}</h3>
+             <h3 className="text-2xl font-bold text-gray-900 mt-1">{totalActive}</h3>
            </div>
            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><Users size={20}/></div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
            <div>
              <p className="text-gray-500 text-sm font-medium">الأعضاء</p>
-             <h3 className="text-2xl font-bold text-indigo-900 mt-1">{activeVisitors.filter(v => v.is_member).length}</h3>
+             <h3 className="text-2xl font-bold text-indigo-900 mt-1">{totalMembers}</h3>
            </div>
            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><User size={20}/></div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
            <div>
              <p className="text-gray-500 text-sm font-medium">الزوار الضيوف</p>
-             <h3 className="text-2xl font-bold text-gray-900 mt-1">{activeVisitors.filter(v => !v.is_member).length}</h3>
+             <h3 className="text-2xl font-bold text-gray-900 mt-1">{totalGuests}</h3>
            </div>
            <div className="p-3 bg-gray-50 text-gray-600 rounded-lg"><Globe size={20}/></div>
         </div>
@@ -700,7 +703,7 @@ function TrafficTab({ visitors }: { visitors: VisitorStats | null }) {
                 جلسات الزوار النشطة
               </CardTitle>
               <p className="text-sm text-gray-500 mt-1">
-                عرض {filteredVisitors.length} من أصل {activeVisitors.length} جلسة نشطة
+                عرض {filteredVisitors.length} من أصل {totalActive} جلسة نشطة
               </p>
             </div>
             
