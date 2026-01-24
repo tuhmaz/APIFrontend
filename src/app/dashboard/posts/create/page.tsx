@@ -5,12 +5,12 @@ import $ from 'jquery';
 import 'summernote/dist/summernote-lite.css';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { Save, FileText, Tag, Image as ImageIcon, Upload } from 'lucide-react';
+import { Save, FileText, Tag, Image as ImageIcon, Upload, Loader2, Sparkles } from 'lucide-react';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { postsService, categoriesService, COUNTRIES } from '@/lib/api/services';
+import { postsService, categoriesService, COUNTRIES, apiClient } from '@/lib/api/services';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
 import { extractError } from '@/lib/utils';
@@ -41,6 +41,7 @@ export default function CreatePostPage() {
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [isTitleDuplicate, setIsTitleDuplicate] = useState(false);
   const [isCheckingTitle, setIsCheckingTitle] = useState(false);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
   const [formData, setFormData] = useState<{
     title: string;
@@ -310,6 +311,40 @@ export default function CreatePostPage() {
     !!formData.category_id &&
     !isTitleDuplicate;
 
+  const handleAiGenerate = async () => {
+    const title = formData.title.trim();
+    if (!title || title.length < 3) {
+      toast.error('يرجى إدخال عنوان المنشور أولاً (3 أحرف على الأقل)');
+      return;
+    }
+
+    try {
+      setIsGeneratingAi(true);
+      const res = await apiClient.post<{ success: boolean; content: string }>('/ai/generate', { title });
+      
+      const content = (res.data as any).content ?? (res.data as any).data?.content;
+      
+      if (content) {
+        setFormData((prev) => ({ ...prev, content }));
+        
+        // Update Summernote
+        const jq = (window as any).jQuery || (window as any).$;
+        if (jq && editorRef.current) {
+          jq(editorRef.current).summernote('code', content);
+        }
+        
+        toast.success('تم توليد المحتوى بنجاح');
+      } else {
+        toast.error('فشل توليد المحتوى');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('حدث خطأ أثناء الاتصال بخدمة الذكاء الاصطناعي');
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!canSubmit || isTitleDuplicate) return;
     try {
@@ -421,6 +456,31 @@ export default function CreatePostPage() {
                         : undefined
                 }
               />
+              
+              <div className="flex justify-end mt-2">
+                <Button
+                  type="button"
+                  onClick={handleAiGenerate}
+                  disabled={isGeneratingAi}
+                  className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white border-0 shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.2)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%,100%_100%] bg-[position:-100%_0] hover:bg-[position:200%_0] transition-[background-position] duration-[1500ms] ease-in-out" />
+                  <div className="relative flex items-center gap-2">
+                    {isGeneratingAi ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>جاري صياغة المحتوى...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        <span>توليد المحتوى بالذكاء الاصطناعي</span>
+                      </>
+                    )}
+                  </div>
+                </Button>
+              </div>
+
               <div className="space-y-2">
                 <span className="block text-sm font-medium mb-2">المحتوى</span>
                 <div ref={editorRef} id="summernote" className="w-full bg-card" />
