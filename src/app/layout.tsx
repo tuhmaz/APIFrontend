@@ -7,6 +7,7 @@ import ResourcePreloader from '@/components/common/ResourcePreloader';
 import { getStorageUrl } from '@/lib/utils';
 import { ssrFetch, getSSRHeaders } from '@/lib/api/ssr-fetch';
 import { API_CONFIG } from '@/lib/api/config';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 // Cairo font - Arabic optimized, loaded via Next.js for better performance
 const cairo = Cairo({
@@ -97,11 +98,13 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getPublicSettings();
+
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
@@ -112,6 +115,7 @@ export default function RootLayout({
       <body
         className={`${cairo.className} ${cairo.variable} antialiased min-h-screen`}
       >
+        <GoogleAnalytics gaId={settings.google_analytics_id} />
         <ThemeInitializer />
         <ToastProvider />
         <ResourcePreloader />
