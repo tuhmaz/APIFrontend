@@ -32,10 +32,22 @@ async function getFileInfo(fileId: string, countryCode: string = 'jo') {
   }
 }
 
+const resolveCountryCode = (codeCookie?: string | null, idCookie?: string | null): string => {
+  if (codeCookie && typeof codeCookie === 'string') {
+    const normalized = codeCookie.trim().toLowerCase();
+    if (['jo', 'sa', 'eg', 'ps'].includes(normalized)) return normalized;
+  }
+  const id = (idCookie || '').toString().trim();
+  return id === '2' ? 'sa' : id === '3' ? 'eg' : id === '4' ? 'ps' : 'jo';
+};
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { fileId } = await params;
   const cookieStore = await cookies();
-  const countryCode = cookieStore.get('country')?.value || 'jo';
+  const countryCode = resolveCountryCode(
+    cookieStore.get('country_code')?.value,
+    cookieStore.get('country_id')?.value
+  );
 
   const data = await getFileInfo(fileId, countryCode);
 
@@ -84,7 +96,10 @@ export default async function DownloadPage({ params, searchParams }: Props) {
   const { fileId } = await params;
   const sp = await searchParams;
   const cookieStore = await cookies();
-  const countryCode = cookieStore.get('country')?.value || 'jo';
+  const countryCode = resolveCountryCode(
+    cookieStore.get('country_code')?.value,
+    cookieStore.get('country_id')?.value
+  );
 
   const data = await getFileInfo(fileId, countryCode);
 
