@@ -36,6 +36,14 @@ async function getPublicSettings(): Promise<Record<string, string | null>> {
   }
 }
 
+const toPublicStorageUrl = (value?: string | null): string | undefined => {
+  const raw = (value || '').toString().trim();
+  if (!raw) return undefined;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  const normalized = raw.startsWith('/') ? raw : `/${raw}`;
+  return normalized.startsWith('/storage/') ? normalized : `/storage${normalized}`;
+};
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings();
   const siteName = (settings.site_name || (settings as any).siteName || '').toString().trim();
@@ -68,7 +76,12 @@ export async function generateMetadata(): Promise<Metadata> {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const metadataBase = normalizeBaseUrl(canonicalUrl) || new URL(appUrl);
   const ogImage = getStorageUrl(settings.site_logo || settings.site_favicon);
-  const faviconUrl = getStorageUrl(settings.site_favicon);
+  const faviconUrl = toPublicStorageUrl(settings.site_favicon);
+  const faviconFallback = '/favicon.ico';
+  const iconList = [
+    { url: faviconFallback },
+    ...(faviconUrl && faviconUrl !== faviconFallback ? [{ url: faviconUrl }] : []),
+  ];
 
   return {
     metadataBase,
@@ -80,9 +93,9 @@ export async function generateMetadata(): Promise<Metadata> {
       metaKeywords || ['تعليم', 'أخبار التعليم', 'نتائج الامتحانات', 'مناهج', 'دروس', 'ملفات تعليمية', 'الأردن', 'طلاب', 'معلمين', 'وزارة التربية والتعليم'],
     alternates: canonicalUrl ? { canonical: canonicalUrl } : undefined,
     icons: {
-      icon: faviconUrl || '/favicon.ico',
-      shortcut: faviconUrl || '/favicon.ico',
-      apple: faviconUrl || '/favicon.ico',
+      icon: iconList,
+      shortcut: faviconFallback,
+      apple: faviconUrl || faviconFallback,
     },
     openGraph: {
       title: metaTitle || siteName || 'منصة التعليم - أخبار ومناهج ونتائج الامتحانات',

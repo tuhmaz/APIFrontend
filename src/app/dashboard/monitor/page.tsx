@@ -66,6 +66,9 @@ export default function MonitorPage() {
     ids: number[];
   }>({ open: false, mode: 'single', ids: [] });
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [visitorPerPage, setVisitorPerPage] = useState<'20' | '50' | '100' | 'all'>('20');
+  const [includeBots, setIncludeBots] = useState(false);
+  const [pruneLoading, setPruneLoading] = useState(false);
   const lastLogIdRef = useRef<number>(0);
 
   const notifyNewAlert = (alert: SecurityLog) => {
@@ -116,9 +119,11 @@ export default function MonitorPage() {
   // Fetch Data
   const fetchData = useCallback(async () => {
     try {
+      const perPage = visitorPerPage === 'all' ? 'all' : Number(visitorPerPage);
+      const withHistory = visitorPerPage !== 'all';
       const [perfData, visitorData, secOverview] = await Promise.all([
         monitorService.getPerformance(),
-        monitorService.getVisitors(),
+        monitorService.getVisitors({ perPage, includeBots, withHistory }),
         monitorService.getSecurityOverview()
       ]);
 
@@ -161,7 +166,7 @@ export default function MonitorPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [includeBots, visitorPerPage]);
 
   useEffect(() => {
     if (!isAuthorized) return;
@@ -215,6 +220,21 @@ export default function MonitorPage() {
       setDeleteLoading(false);
     }
   };
+
+  const handlePruneSessions = useCallback(async () => {
+    setPruneLoading(true);
+    try {
+      const result = await monitorService.pruneVisitors();
+      const deleted = typeof result?.deleted === 'number' ? result.deleted : 0;
+      toast.success(`تم تنظيف ${deleted} جلسة قديمة`);
+      await fetchData();
+    } catch (error) {
+      console.error('Failed to prune visitor sessions:', error);
+      toast.error('تعذر تنظيف الجلسات');
+    } finally {
+      setPruneLoading(false);
+    }
+  }, [fetchData]);
 
   const deleteTitle =
     deleteModal.mode === 'all'
@@ -336,7 +356,15 @@ export default function MonitorPage() {
             />
           )}
           {activeTab === 'traffic' && (
-            <TrafficTab visitors={visitors} />
+            <TrafficTab
+              visitors={visitors}
+              visitorPerPage={visitorPerPage}
+              includeBots={includeBots}
+              onChangePerPage={setVisitorPerPage}
+              onToggleIncludeBots={setIncludeBots}
+              onPrune={handlePruneSessions}
+              isPruning={pruneLoading}
+            />
           )}
           {activeTab === 'security' && (
             <SecurityTab 
@@ -616,7 +644,23 @@ function OverviewTab({ performance, visitors, securityStats, perfHistory }: any)
   );
 }
 
-function TrafficTab({ visitors }: { visitors: VisitorStats | null }) {
+function TrafficTab({
+  visitors,
+  visitorPerPage,
+  includeBots,
+  onChangePerPage,
+  onToggleIncludeBots,
+  onPrune,
+  isPruning,
+}: {
+  visitors: VisitorStats | null;
+  visitorPerPage: '20' | '50' | '100' | 'all';
+  includeBots: boolean;
+  onChangePerPage: (value: '20' | '50' | '100' | 'all') => void;
+  onToggleIncludeBots: (value: boolean) => void;
+  onPrune: () => void;
+  isPruning: boolean;
+}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'member' | 'guest'>('all');
   const [filterCountry, setFilterCountry] = useState<string>('all');
@@ -696,17 +740,55 @@ function TrafficTab({ visitors }: { visitors: VisitorStats | null }) {
       {/* Main Table Section (Full Width) */}
       <Card className="border-none shadow-sm bg-white overflow-hidden">
         <div className="p-6 border-b border-gray-50 space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-lg font-bold flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-500" />
-                جلسات الزوار النشطة
-              </CardTitle>
-              <p className="text-sm text-gray-500 mt-1">
-                عرض {filteredVisitors.length} من أصل {totalActive} جلسة نشطة
-              </p>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                  <Users className="w-5 h-5 text-blue-500" />
+                  جلسات الزوار النشطة
+                </CardTitle>
+                <p className="text-sm text-gray-500 mt-1">
+                  عرض {filteredVisitors.length} من أصل {totalActive} جلسة نشطة
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                  <span className="text-xs text-gray-500">عرض</span>
+                  <select
+                    value={visitorPerPage}
+                    onChange={(e) => onChangePerPage(e.target.value as '20' | '50' | '100' | 'all')}
+                    className="bg-transparent text-sm focus:outline-none cursor-pointer"
+                  >
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="all">الكل</option>
+                  </select>
+                </div>
+
+                <label className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="accent-blue-500"
+                    checked={includeBots}
+                    onChange={(e) => onToggleIncludeBots(e.target.checked)}
+                  />
+                  عرض البوتات
+                </label>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  isLoading={isPruning}
+                  leftIcon={<Trash2 size={14} />}
+                  onClick={onPrune}
+                >
+                  تنظيف الجلسات
+                </Button>
+              </div>
             </div>
-            
+
             {/* Filters Toolbar */}
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative">

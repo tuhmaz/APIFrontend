@@ -306,6 +306,8 @@ export default function FilesPage() {
   };
 
   const totalSize = useMemo(() => files.reduce((sum, f) => sum + (f?.file_size || 0), 0), [files]);
+  const totalViews = useMemo(() => files.reduce((sum, f) => sum + (f?.views_count || 0), 0), [files]);
+  const totalDownloads = useMemo(() => files.reduce((sum, f) => sum + (f?.download_count || 0), 0), [files]);
   const downloadUrl = (id: number) => `${API_CONFIG.BASE_URL}${API_ENDPOINTS.FILES.DOWNLOAD(id)}`;
 
   const categories = DEFAULT_CATEGORIES;
@@ -334,7 +336,7 @@ export default function FilesPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid sm:grid-cols-4 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card>
           <CardContent className="py-4">
             <p className="text-sm text-muted-foreground">إجمالي الملفات</p>
@@ -364,6 +366,18 @@ export default function FilesPage() {
                 return m.includes('pdf') || m.includes('document');
               }).length}
             </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4">
+            <p className="text-sm text-muted-foreground">إجمالي المشاهدات</p>
+            <p className="text-2xl font-bold text-indigo-600">{totalViews.toLocaleString('ar-EG')}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4">
+            <p className="text-sm text-muted-foreground">إجمالي التنزيلات</p>
+            <p className="text-2xl font-bold text-emerald-600">{totalDownloads.toLocaleString('ar-EG')}</p>
           </CardContent>
         </Card>
       </div>
@@ -493,6 +507,16 @@ export default function FilesPage() {
                       </div>
                       <p className="font-medium text-sm truncate w-full mb-1">{file.file_name}</p>
                       <p className="text-xs text-muted-foreground">{formatFileSize(file.file_size || 0)}</p>
+                      <div className="mt-2 flex items-center justify-center gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          {(file.views_count || 0).toLocaleString('ar-EG')}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Download className="w-3 h-3" />
+                          {(file.download_count || 0).toLocaleString('ar-EG')}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center justify-center gap-2 mt-4">
                       <button
@@ -546,6 +570,16 @@ export default function FilesPage() {
                       <p className="text-sm text-muted-foreground">{file.created_at}</p>
                     </div>
                     <div className="text-sm text-muted-foreground">{formatFileSize(file.file_size || 0)}</div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        {(file.views_count || 0).toLocaleString('ar-EG')}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Download className="w-3 h-3" />
+                        {(file.download_count || 0).toLocaleString('ar-EG')}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={(e) => { e.stopPropagation(); setPreviewFile(file); }}
@@ -662,6 +696,14 @@ export default function FilesPage() {
               <div className="flex justify-between py-2 border-b border-border">
                 <span className="text-muted-foreground">تاريخ الرفع</span>
                 <span>{previewFile.created_at}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-border">
+                <span className="text-muted-foreground">المشاهدات</span>
+                <span>{(previewFile.views_count || 0).toLocaleString('ar-EG')}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-border">
+                <span className="text-muted-foreground">التنزيلات</span>
+                <span>{(previewFile.download_count || 0).toLocaleString('ar-EG')}</span>
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 pt-6">

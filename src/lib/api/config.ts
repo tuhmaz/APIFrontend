@@ -200,6 +200,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id: number | string) => `/dashboard/files/${id}`,
     DELETE: (id: number | string) => `/dashboard/files/${id}`,
     DOWNLOAD: (id: number | string) => `/dashboard/files/${id}/download`,
+    INCREMENT_VIEW: (id: number | string) => `/files/${id}/increment-view`,
     UPLOAD: '/upload/image',
     UPLOAD_FILE: '/upload/file',
   },

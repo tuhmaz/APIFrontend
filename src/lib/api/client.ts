@@ -297,19 +297,28 @@ class ApiClient {
   }
 
   async get<T>(endpoint: string, params?: Record<string, string | number | boolean | undefined>, options?: Omit<RequestOptions, 'method' | 'params'>) {
-    // Check cache for GET requests
-    const cacheKey = this.getCacheKey(endpoint, params);
-    const cached = this.getFromCache<T>(cacheKey);
+    const cacheMode = options?.cache;
+    const shouldUseMemoryCache =
+      typeof window !== 'undefined' &&
+      cacheMode !== 'no-store' &&
+      cacheMode !== 'no-cache' &&
+      cacheMode !== 'reload';
 
-    // Return cached data if available and caching is not disabled
-    if (cached && !options?.cache) {
+    // Check cache for GET requests (browser only)
+    const cacheKey = this.getCacheKey(endpoint, params);
+    const cached = shouldUseMemoryCache ? this.getFromCache<T>(cacheKey) : null;
+
+    // Return cached data if available and caching is allowed
+    if (cached) {
       return cached;
     }
 
     const response = await this.request<T>(endpoint, { method: 'GET', params, ...options });
 
-    // Cache successful GET requests
-    this.setCache(cacheKey, response);
+    // Cache successful GET requests only when allowed (browser only)
+    if (shouldUseMemoryCache) {
+      this.setCache(cacheKey, response);
+    }
 
     return response;
   }

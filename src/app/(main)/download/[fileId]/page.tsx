@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
-import { getStorageUrl, safeJsonLd } from '@/lib/utils';
+import { safeJsonLd } from '@/lib/utils';
 import DownloadTimer from '@/components/download/DownloadTimer';
 import AdSenseDisplay from '@/components/ads/AdSenseDisplay';
 import ClassHeader from '@/components/class/ClassHeader';
@@ -22,7 +22,8 @@ async function getFileInfo(fileId: string, countryCode: string = 'jo') {
   try {
     const response = await apiClient.get<any>(
       API_ENDPOINTS.FILES.INFO(fileId),
-      { database: countryCode }
+      { database: countryCode },
+      { cache: 'no-store' } as any
     );
     return response?.data?.data || null;
   } catch (err) {
@@ -137,12 +138,6 @@ export default async function DownloadPage({ params, searchParams }: Props) {
     ? (type === 'post' ? `/${countryCode}/posts/${item.id}` : `/${countryCode}/lesson/articles/${item.id}`)
     : `/${countryCode}`);
 
-  // Determine download URL
-  const isPostFile = type === 'post';
-  const downloadUrl = isPostFile && file.file_url
-    ? getStorageUrl(file.file_url)
-    : undefined;
-
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
       {/* JSON-LD for SEO */}
@@ -202,7 +197,8 @@ export default async function DownloadPage({ params, searchParams }: Props) {
               fileName={file.file_name}
               fileSize={file.file_size}
               fileType={file.file_type}
-              customDownloadUrl={downloadUrl}
+              viewsCount={file.views_count ?? 0}
+              downloadCount={file.download_count ?? 0}
             />
 
             {/* Rich Content Section - AdSense Compliant */}

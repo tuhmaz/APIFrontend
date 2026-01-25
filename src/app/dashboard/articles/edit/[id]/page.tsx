@@ -29,6 +29,7 @@ import { articlesService, COUNTRIES, apiClient, API_ENDPOINTS } from '@/lib/api/
 import type { SchoolClass, Subject, Semester } from '@/types';
 import type { ArticleFormData } from '@/lib/api/services/articles';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
+import { extractError } from '@/lib/utils';
 import AccessDenied from '@/components/common/AccessDenied';
 
 export default function EditArticlePage() {
@@ -36,19 +37,6 @@ export default function EditArticlePage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-
-  const extractError = (err: unknown) => {
-    if (err && typeof err === 'object') {
-      const e = err as any;
-      return {
-        status: e.status ?? e.response?.status ?? undefined,
-        message: e.message ?? e.response?.data?.message ?? 'تعذر تنفيذ العملية',
-        errors: e.errors ?? e.response?.data?.errors ?? undefined,
-        name: e.name ?? undefined,
-      };
-    }
-    return { message: String(err || '') };
-  };
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -531,7 +519,19 @@ export default function EditArticlePage() {
     } catch (e) {
       console.error(e);
       const errorInfo = extractError(e);
-      toast.error(errorInfo.message || 'حدث خطأ أثناء تحديث المقال');
+      
+      let errorMessage = errorInfo.message || 'حدث خطأ أثناء تحديث المقال';
+      
+      if (errorInfo.errors && typeof errorInfo.errors === 'object') {
+        const firstError = Object.values(errorInfo.errors)[0];
+        if (Array.isArray(firstError) && firstError.length > 0) {
+          errorMessage = firstError[0];
+        } else if (typeof firstError === 'string') {
+          errorMessage = firstError;
+        }
+      }
+      
+      toast.error(errorMessage);
       setIsSubmitting(false);
     }
   };

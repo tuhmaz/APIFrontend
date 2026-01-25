@@ -19,20 +19,6 @@ export default function CreatePostPage() {
   const { isAuthorized } = usePermissionGuard('manage posts');
   const router = useRouter();
 
-  const extractError = (err: unknown) => {
-    if (err && typeof err === 'object') {
-      const e = err as any;
-      return {
-        status: e.status ?? e.response?.status ?? undefined,
-        message: e.message ?? e.response?.data?.message ?? 'تعذر تنفيذ العملية',
-        errors: e.errors ?? e.response?.data?.errors ?? undefined,
-        name: e.name ?? undefined,
-      };
-    }
-    return { message: String(err || '') };
-  };
-
-
   const editorRef = useRef<HTMLDivElement | null>(null);
   const [summernoteReady, setSummernoteReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -366,7 +352,19 @@ export default function CreatePostPage() {
     } catch (e) {
       console.error(e);
       const errorInfo = extractError(e);
-      toast.error(errorInfo.message || 'حدث خطأ أثناء إنشاء المنشور');
+      
+      let errorMessage = errorInfo.message || 'حدث خطأ أثناء إنشاء المنشور';
+      
+      if (errorInfo.errors && typeof errorInfo.errors === 'object') {
+        const firstError = Object.values(errorInfo.errors)[0];
+        if (Array.isArray(firstError) && firstError.length > 0) {
+          errorMessage = firstError[0];
+        } else if (typeof firstError === 'string') {
+          errorMessage = firstError;
+        }
+      }
+      
+      toast.error(errorMessage);
       setIsSubmitting(false);
     }
   };

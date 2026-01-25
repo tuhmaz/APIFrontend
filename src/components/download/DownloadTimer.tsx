@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Download, CheckCircle, FileText, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Download, CheckCircle, FileText, AlertCircle, Eye } from 'lucide-react';
+import { apiClient } from '@/lib/api/client';
+import { API_ENDPOINTS } from '@/lib/api/config';
 
 interface Props {
   fileId: number | string;
@@ -10,11 +12,30 @@ interface Props {
   fileSize: number;
   fileType: string;
   customDownloadUrl?: string;
+  viewsCount?: number;
+  downloadCount?: number;
 }
 
-export default function DownloadTimer({ fileId, countryCode, fileName, fileSize, fileType, customDownloadUrl }: Props) {
+export default function DownloadTimer({
+  fileId,
+  countryCode,
+  fileName,
+  fileSize,
+  fileType,
+  customDownloadUrl,
+  viewsCount = 0,
+  downloadCount = 0,
+}: Props) {
   const [timeLeft, setTimeLeft] = useState(25);
   const [canDownload, setCanDownload] = useState(false);
+  const [views, setViews] = useState<number>(viewsCount);
+  const [downloads, setDownloads] = useState<number>(downloadCount);
+  const hasTrackedRef = useRef(false);
+
+  useEffect(() => {
+    setViews(viewsCount || 0);
+    setDownloads(downloadCount || 0);
+  }, [viewsCount, downloadCount]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -36,6 +57,31 @@ export default function DownloadTimer({ fileId, countryCode, fileName, fileSize,
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (hasTrackedRef.current) return;
+    hasTrackedRef.current = true;
+
+    const trackView = async () => {
+      try {
+        const response = await apiClient.post<any>(
+          API_ENDPOINTS.FILES.INCREMENT_VIEW(fileId),
+          { database: countryCode }
+        );
+        const payload = (response as any)?.data?.data || (response as any)?.data || response;
+        if (typeof payload?.views_count === 'number') {
+          setViews(payload.views_count);
+        }
+        if (typeof payload?.download_count === 'number') {
+          setDownloads(payload.download_count);
+        }
+      } catch {
+        // Silent fail - view counting is not critical
+      }
+    };
+
+    trackView();
+  }, [fileId, countryCode]);
+
   const progress = ((25 - timeLeft) / 25) * 100;
 
   const downloadUrl = customDownloadUrl || `/api/download/${fileId}?countryCode=${countryCode}`;
@@ -48,10 +94,17 @@ export default function DownloadTimer({ fileId, countryCode, fileName, fileSize,
       </div>
 
       <h2 className="text-2xl font-bold text-gray-900 mb-4 break-words whitespace-normal leading-relaxed px-4 bidi-plaintext" dir="auto">{fileName}</h2>
-      <div className="flex items-center justify-center gap-4 text-gray-500 mb-8 text-sm">
+      <div className="flex items-center justify-center gap-4 text-gray-500 mb-4 text-sm">
         <span className="bg-gray-100 px-3 py-1 rounded-full">{fileType || 'FILE'}</span>
         <span>•</span>
         <span>{formatFileSize(fileSize)}</span>
+      </div>
+      <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-gray-600 mb-8">
+        <span className="bg-gray-100 px-3 py-1 rounded-full">المشاهدات: {views.toLocaleString('ar-EG')}</span>
+        <span className="bg-gray-100 px-3 py-1 rounded-full flex items-center gap-1">
+          <Eye size={12} className="text-gray-400" />
+          التنزيلات: {downloads.toLocaleString('ar-EG')}
+        </span>
       </div>
 
       {!canDownload ? (

@@ -45,6 +45,7 @@ export interface ActiveVisitor {
   user_name?: string;
   user_email?: string;
   user_role?: string;
+  is_bot?: boolean;
   last_active: string;
   session_start: string;
   history: {
@@ -93,20 +94,32 @@ export interface MonitorOverview {
 export const monitorService = {
   // Get all monitor data in one go (or separate if preferred)
   getPerformance: async () => {
-    const response = await apiClient.get<SystemMetrics>('/dashboard/performance/live');
+    const response = await apiClient.get<SystemMetrics>('/dashboard/performance/live', undefined, { cache: 'no-store' });
     // Ensure we handle the response structure correctly.
     // BaseResource wraps in data, so we unwrap it.
     return (response as any).data?.data || (response as any).data || response; 
   },
 
   getSecurityOverview: async () => {
-    const response = await apiClient.get<any>('/dashboard/security/monitor/dashboard');
+    const response = await apiClient.get<any>('/dashboard/security/monitor/dashboard', undefined, { cache: 'no-store' });
     return (response as any).data?.data || (response as any).data || response;
   },
 
-  getVisitors: async () => {
-    const response = await apiClient.get<any>(API_ENDPOINTS.DASHBOARD.ANALYTICS);
+  getVisitors: async (options?: { perPage?: number | 'all'; includeBots?: boolean; withHistory?: boolean }) => {
+    const params: Record<string, string | number | boolean | undefined> = {};
+    if (options?.perPage !== undefined) params.per_page = options.perPage;
+    if (options?.includeBots !== undefined) params.include_bots = options.includeBots;
+    if (options?.withHistory !== undefined) params.with_history = options.withHistory;
+    const response = await apiClient.get<any>(API_ENDPOINTS.DASHBOARD.ANALYTICS, params, { cache: 'no-store' });
     return (response as any).data?.data || (response as any).data || response; // contains visitor_stats, user_stats, country_stats
+  },
+
+  pruneVisitors: async (options?: { minutes?: number; onlyBots?: boolean }) => {
+    const payload: Record<string, number | boolean> = {};
+    if (options?.minutes !== undefined) payload.minutes = options.minutes;
+    if (options?.onlyBots !== undefined) payload.only_bots = options.onlyBots;
+    const response = await apiClient.post<any>('/dashboard/visitor-analytics/prune', payload);
+    return (response as any).data?.data || (response as any).data || response;
   },
 
   getRecentLogs: async () => {

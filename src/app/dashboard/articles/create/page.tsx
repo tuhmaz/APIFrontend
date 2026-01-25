@@ -30,24 +30,32 @@ import { articlesService, COUNTRIES, apiClient, API_ENDPOINTS } from '@/lib/api/
 import type { SchoolClass, Subject, Semester } from '@/types';
 import type { ArticleFormData } from '@/lib/api/services/articles';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
+import { extractError } from '@/lib/utils';
 import AccessDenied from '@/components/common/AccessDenied';
+
+const META_MAX_LENGTH = 120;
+const MAX_ARTICLE_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
+const normalizeMeta = (value: string) => value.replace(/\s+/g, ' ').trim();
+
+const clampMeta = (value: string) => {
+  const normalized = normalizeMeta(value);
+  if (!normalized) return '';
+  if (normalized.length <= META_MAX_LENGTH) return normalized;
+  return normalized.slice(0, META_MAX_LENGTH).trim();
+};
+
+const generateMetaFromContent = (html: string, title: string, keywords?: string) => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html || '';
+  const text = (tmp.textContent || tmp.innerText || '').trim();
+  const base = text || title || (keywords || '');
+  return clampMeta(base);
+};
 
 export default function CreateArticlePage() {
   const { isAuthorized } = usePermissionGuard('manage articles');
   const router = useRouter();
-
-  const extractError = (err: unknown) => {
-    if (err && typeof err === 'object') {
-      const e = err as any;
-      return {
-        status: e.status ?? e.response?.status ?? undefined,
-        message: e.message ?? e.response?.data?.message ?? 'تعذر تنفيذ العملية',
-        errors: e.errors ?? e.response?.data?.errors ?? undefined,
-        name: e.name ?? undefined,
-      };
-    }
-    return { message: String(err || '') };
-  };
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -137,6 +145,15 @@ export default function CreateArticlePage() {
   ];
 
   const handleFileChange = (file: File | undefined) => {
+    if (file && file.size > MAX_ARTICLE_FILE_SIZE) {
+      toast.error('حجم الملف يتجاوز الحد المسموح (50 ميجابايت).');
+      setFormData((prev) => ({
+        ...prev,
+        file: undefined,
+        file_name: '',
+      }));
+      return;
+    }
     setFormData((prev) => ({
       ...prev,
       file,
@@ -144,14 +161,6 @@ export default function CreateArticlePage() {
     }));
   };
 
-  const generateMetaFromContent = (html: string, title: string, keywords?: string) => {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html || '';
-    const text = (tmp.textContent || tmp.innerText || '').trim();
-    const base = text || title || (keywords || '');
-    const normalized = base.replace(/\s+/g, ' ').trim();
-    return normalized.length > 160 ? normalized.slice(0, 157) + '...' : normalized;
-  };
 
   useEffect(() => {
     if (!isAuthorized) return;
@@ -434,13 +443,13 @@ export default function CreateArticlePage() {
 
   useEffect(() => {
     if (useTitleForMeta) {
-      setFormData((prev: ArticleFormData) => ({ ...prev, meta_description: prev.title }));
+      setFormData((prev: ArticleFormData) => ({ ...prev, meta_description: clampMeta(prev.title) }));
     }
   }, [formData.title, useTitleForMeta]);
 
   useEffect(() => {
     if (useKeywordsForMeta) {
-      setFormData((prev: ArticleFormData) => ({ ...prev, meta_description: prev.keywords || '' }));
+      setFormData((prev: ArticleFormData) => ({ ...prev, meta_description: clampMeta(prev.keywords || '') }));
     }
   }, [formData.keywords, useKeywordsForMeta]);
 
@@ -481,13 +490,26 @@ export default function CreateArticlePage() {
             : (formData.meta_description && formData.meta_description.trim())
               ? formData.meta_description!.trim()
               : generateMetaFromContent(formData.content || '', formData.title, formData.keywords);
-      await articlesService.create({ ...formData, meta_description: computedMeta });
+      const safeMeta = clampMeta(computedMeta || '');
+      await articlesService.create({ ...formData, meta_description: safeMeta || undefined });
       toast.success('تم إنشاء المقال بنجاح');
       router.push('/dashboard/articles');
     } catch (e) {
       console.error(e);
       const errorInfo = extractError(e);
-      toast.error(errorInfo.message || 'حدث خطأ أثناء إنشاء المقال');
+      
+      let errorMessage = errorInfo.message || 'حدث خطأ أثناء إنشاء المقال';
+      
+      if (errorInfo.errors && typeof errorInfo.errors === 'object') {
+        const firstError = Object.values(errorInfo.errors)[0];
+        if (Array.isArray(firstError) && firstError.length > 0) {
+          errorMessage = firstError[0];
+        } else if (typeof firstError === 'string') {
+          errorMessage = firstError;
+        }
+      }
+      
+      toast.error(errorMessage);
       setIsSubmitting(false);
     }
   };
@@ -658,11 +680,16 @@ export default function CreateArticlePage() {
                   onChange={(e) =>
                     setFormData((prev: ArticleFormData) => ({ ...prev, meta_description: e.target.value }))
                   }
+                  maxLength={META_MAX_LENGTH}
                   rows={3}
                   className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
                   disabled={useTitleForMeta || useKeywordsForMeta}
                   placeholder="اكتب وصفاً جذاباً يظهر في نتائج البحث..."
                 />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>الحد الأقصى {META_MAX_LENGTH} حرفًا</span>
+                  <span>{normalizeMeta(formData.meta_description || '').length}/{META_MAX_LENGTH}</span>
+                </div>
                 
                 <div className="flex flex-col sm:flex-row gap-4 pt-1">
                   <label htmlFor="use-title-meta" className="inline-flex items-center gap-2 cursor-pointer group">
@@ -906,6 +933,7 @@ export default function CreateArticlePage() {
                     )}
                   </div>
                 </div>
+                <p className="text-xs text-muted-foreground">الحد الأقصى لحجم الملف: 50 ميجابايت.</p>
                 {formData.file_name && (
                    <Button 
                      variant="ghost" 
