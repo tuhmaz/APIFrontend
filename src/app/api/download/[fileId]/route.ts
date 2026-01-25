@@ -2,24 +2,42 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { API_CONFIG, API_ENDPOINTS } from '@/lib/api/config';
 
+const resolveCountryCode = (codeCookie?: string | null, idCookie?: string | null): string => {
+  if (codeCookie && typeof codeCookie === 'string') {
+    const normalized = codeCookie.trim().toLowerCase();
+    if (['jo', 'sa', 'eg', 'ps'].includes(normalized)) return normalized;
+  }
+  const id = (idCookie || '').toString().trim();
+  return id === '2' ? 'sa' : id === '3' ? 'eg' : id === '4' ? 'ps' : 'jo';
+};
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ fileId: string }> }
 ) {
   const { fileId } = await params;
   const searchParams = request.nextUrl.searchParams;
-  const countryCode = searchParams.get('countryCode');
+  const countryCodeParam = searchParams.get('countryCode') || searchParams.get('database');
 
-  if (!fileId || !countryCode) {
-    return new NextResponse('Missing parameters', { status: 400 });
+  if (!fileId) {
+    return new NextResponse('Missing fileId', { status: 400 });
   }
 
-  // Get token from cookies
   const cookieStore = await cookies();
+  const inferredCountryCode = resolveCountryCode(
+    cookieStore.get('country_code')?.value,
+    cookieStore.get('country_id')?.value
+  );
+  const countryCode = (countryCodeParam || inferredCountryCode || 'jo').trim().toLowerCase();
+
+  // Get token from cookies
   const token = cookieStore.get('token')?.value;
 
   // Construct the backend URL
-  const backendUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ARTICLES.DOWNLOAD(fileId)}?database=${countryCode}`;
+  const baseUrl = API_CONFIG.BASE_URL.replace(/\/+$/, '');
+  const endpoint = API_ENDPOINTS.ARTICLES.DOWNLOAD(fileId);
+  const backendUrl = new URL(`${baseUrl}${endpoint}`);
+  backendUrl.searchParams.set('database', countryCode);
   
   console.log(`[Proxy] Fetching file from: ${backendUrl}`);
 
@@ -37,6 +55,23 @@ export async function GET(
       'X-Requested-With': 'XMLHttpRequest',
       'X-Forwarded-For': clientIp,
     };
+    requestHeaders['X-Real-IP'] = clientIp;
+
+    const incomingUserAgent = request.headers.get('user-agent');
+    requestHeaders['User-Agent'] = incomingUserAgent || 'Next.js';
+
+    const incomingOrigin = request.headers.get('origin');
+    requestHeaders['Origin'] = incomingOrigin || request.nextUrl.origin;
+
+    const incomingReferer = request.headers.get('referer');
+    if (incomingReferer) {
+      requestHeaders['Referer'] = incomingReferer;
+    }
+
+    const incomingRange = request.headers.get('range');
+    if (incomingRange) {
+      requestHeaders['Range'] = incomingRange;
+    }
 
     const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
     if (apiKey) {
@@ -48,7 +83,7 @@ export async function GET(
     }
 
     // Fetch from the Laravel backend
-    const response = await fetch(backendUrl, {
+    const response = await fetch(backendUrl.toString(), {
       method: 'GET',
       headers: requestHeaders,
       cache: 'no-store',
@@ -94,8 +129,30 @@ export async function GET(
       responseHeaders.set('Content-Disposition', `attachment; filename="file-${fileId}.${ext}"`);
     }
 
-    return new NextResponse(response.body, {
-      status: 200,
+    const passthroughHeaders = [
+      'accept-ranges',
+      'content-range',
+      'etag',
+      'last-modified',
+      'cache-control',
+    ] as const;
+
+    for (const header of passthroughHeaders) {
+      const value = response.headers.get(header);
+      if (value) responseHeaders.set(header, value);
+    }
+
+    const body = response.body;
+    if (!body) {
+      const buffer = await response.arrayBuffer();
+      return new NextResponse(buffer, {
+        status: response.status,
+        headers: responseHeaders,
+      });
+    }
+
+    return new NextResponse(body, {
+      status: response.status,
       headers: responseHeaders,
     });
 
