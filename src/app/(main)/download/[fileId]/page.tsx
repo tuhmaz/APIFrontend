@@ -21,19 +21,49 @@ interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+type FileInfoResult =
+  | { ok: true; data: any }
+  | { ok: false; status?: number; message?: string };
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 // Fetch file info with related article/post
-async function getFileInfo(fileId: string, countryCode: string = 'jo') {
-  try {
-    const response = await apiClient.get<any>(
-      API_ENDPOINTS.FILES.INFO(fileId),
-      { database: countryCode },
-      { cache: 'no-store' } as any
-    );
-    return response?.data?.data || null;
-  } catch (err) {
-    console.error('Error fetching file info:', err);
-    return null;
+async function getFileInfo(fileId: string, countryCode: string = 'jo'): Promise<FileInfoResult> {
+  const retryStatuses = new Set([429, 500, 502, 503, 504]);
+  const maxAttempts = 4;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await apiClient.get<any>(
+        API_ENDPOINTS.FILES.INFO(fileId),
+        { database: countryCode },
+        { cache: 'no-store' } as any
+      );
+      const data = response?.data?.data || null;
+      if (!data) {
+        return { ok: false, message: 'Empty response' };
+      }
+      return { ok: true, data };
+    } catch (err: any) {
+      const status = (err as any)?.status;
+      const message = (err as any)?.message;
+
+      if (status === 404) {
+        return { ok: false, status, message };
+      }
+
+      if (status && retryStatuses.has(status) && attempt < maxAttempts) {
+        const delayMs = 250 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 200);
+        await sleep(delayMs);
+        continue;
+      }
+
+      console.error('Error fetching file info:', err);
+      return { ok: false, status, message };
+    }
   }
+
+  return { ok: false, status: 503, message: 'Retry attempts exhausted' };
 }
 
 const resolveCountryCode = (codeCookie?: string | null, idCookie?: string | null): string => {
@@ -53,16 +83,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     cookieStore.get('country_id')?.value
   );
 
-  const data = await getFileInfo(fileId, countryCode);
+  const result = await getFileInfo(fileId, countryCode);
 
-  if (!data || !data.file) {
+  if (!result.ok) {
     return {
       title: 'ملف غير موجود',
       description: 'الملف المطلوب غير متوفر',
     };
   }
 
-  const { file, item } = data;
+  const { file, item } = result.data;
 
   const title = `تحميل ${file.file_name}${item ? ` - ${item.title}` : ''}`;
   const subjectName = item?.subject?.name ? `التابع لمادة ${item.subject.name}` : '';
@@ -105,9 +135,9 @@ export default async function DownloadPage({ params, searchParams }: Props) {
     cookieStore.get('country_id')?.value
   );
 
-  const data = await getFileInfo(fileId, countryCode);
+  const result = await getFileInfo(fileId, countryCode);
 
-  if (!data || !data.file) {
+  if (!result.ok && result.status === 404) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -134,7 +164,43 @@ export default async function DownloadPage({ params, searchParams }: Props) {
     );
   }
 
-  const { file, item, type } = data;
+  if (!result.ok) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto">
+            <div className="bg-blue-50 p-4 rounded-xl mb-6">
+              <FileText size={32} className="text-blue-600 mx-auto" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">تعذّر تحميل بيانات الملف</h2>
+            <p className="text-gray-600 mb-6">
+              حدث خطأ مؤقت أو ضغط على الخادم. يرجى المحاولة مرة أخرى.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href={`/download/${fileId}`}
+                className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                إعادة المحاولة
+              </Link>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 bg-gray-200 text-gray-900 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                <Home size={18} />
+                الصفحة الرئيسية
+              </Link>
+            </div>
+            {result.status ? (
+              <p className="mt-4 text-xs text-gray-400">Code: {result.status}</p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { file, item, type } = result.data;
 
   // Schema.org Structured Data
   const jsonLd = {

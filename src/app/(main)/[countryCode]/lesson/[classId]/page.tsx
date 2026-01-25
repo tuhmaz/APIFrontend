@@ -7,7 +7,7 @@ import SubjectsList from '@/components/class/SubjectsList';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS, COUNTRIES } from '@/lib/api/config';
-import { ssrFetch, getSSRHeaders } from '@/lib/api/ssr-fetch';
+import { getFrontSettings } from '@/lib/front-settings';
 
 interface PageProps {
   params: Promise<{
@@ -48,21 +48,7 @@ async function getClassInfo(countryCode: string, classId: string) {
 }
 
 async function getPublicSettings(): Promise<Record<string, string | null>> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-  try {
-    const res = await ssrFetch(`${baseUrl}/front/settings`, {
-      next: { revalidate: 300 },
-      headers: getSSRHeaders()
-    });
-    if (!res.ok) return {};
-    const json: any = await res.json().catch(() => null);
-    const body = json?.data ?? json;
-    const settings = body?.settings ?? body?.data ?? body;
-    if (settings && typeof settings === 'object') return settings as Record<string, string | null>;
-    return {};
-  } catch {
-    return {};
-  }
+  return getFrontSettings();
 }
 
 export async function generateMetadata({

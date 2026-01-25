@@ -5,9 +5,9 @@ import ToastProvider from '@/components/ui/ToastProvider';
 import ThemeInitializer from '@/components/ThemeInitializer';
 import ResourcePreloader from '@/components/common/ResourcePreloader';
 import { getStorageUrl } from '@/lib/utils';
-import { ssrFetch, getSSRHeaders } from '@/lib/api/ssr-fetch';
-import { API_CONFIG } from '@/lib/api/config';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import { getFrontSettings } from '@/lib/front-settings';
+import { FrontSettingsProvider } from '@/components/front-settings/FrontSettingsProvider';
 
 // Cairo font - Arabic optimized, loaded via Next.js for better performance
 const cairo = Cairo({
@@ -19,21 +19,7 @@ const cairo = Cairo({
 });
 
 async function getPublicSettings(): Promise<Record<string, string | null>> {
-  const baseUrl = API_CONFIG.BASE_URL;
-  try {
-    const res = await ssrFetch(`${baseUrl}/front/settings`, {
-      next: { revalidate: 300 },
-      headers: getSSRHeaders()
-    });
-    if (!res.ok) return {};
-    const json: any = await res.json().catch(() => null);
-    const body = json?.data ?? json;
-    const settings = body?.settings ?? body?.data ?? body;
-    if (settings && typeof settings === 'object') return settings as Record<string, string | null>;
-    return {};
-  } catch {
-    return {};
-  }
+  return getFrontSettings();
 }
 
 const toPublicStorageUrl = (value?: string | null): string | undefined => {
@@ -132,11 +118,13 @@ export default async function RootLayout({
       <body
         className={`${cairo.className} ${cairo.variable} antialiased min-h-screen`}
       >
-        <GoogleAnalytics gaId={gaId} />
-        <ThemeInitializer />
-        <ToastProvider />
-        <ResourcePreloader />
-        {children}
+        <FrontSettingsProvider settings={settings}>
+          <GoogleAnalytics gaId={gaId} />
+          <ThemeInitializer />
+          <ToastProvider />
+          <ResourcePreloader />
+          {children}
+        </FrontSettingsProvider>
       </body>
     </html>
   );

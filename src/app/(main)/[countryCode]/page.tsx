@@ -3,26 +3,13 @@ import { Metadata } from 'next';
 import { API_CONFIG, COUNTRIES } from '@/lib/api/config';
 import HomeContent from '@/components/home/HomeContent';
 import { ssrFetch, getSSRHeaders } from '@/lib/api/ssr-fetch';
+import { getFrontSettings } from '@/lib/front-settings';
 
 // Use ISR with revalidation for better performance
 export const revalidate = 60;
 
 async function getPublicSettings(): Promise<Record<string, string | null>> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-  try {
-    const res = await ssrFetch(`${baseUrl}/front/settings`, {
-      next: { revalidate: 300 },
-      headers: getSSRHeaders()
-    });
-    if (!res.ok) return {};
-    const json: any = await res.json().catch(() => null);
-    const body = json?.data ?? json;
-    const settings = body?.settings ?? body?.data ?? body;
-    if (settings && typeof settings === 'object') return settings as Record<string, string | null>;
-    return {};
-  } catch {
-    return {};
-  }
+  return getFrontSettings();
 }
 
 async function getClasses(countryId: string) {

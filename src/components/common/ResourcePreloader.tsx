@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { API_CONFIG } from '@/lib/api/config';
 
 /**
  * Preloads critical resources based on current route
@@ -45,38 +44,6 @@ export default function ResourcePreloader() {
     } else if (pathname.includes('/classes')) {
       // From classes, likely to visit subjects
       // This will be handled by LinkPrefetch component
-    }
-
-    // Prefetch API endpoint responses
-    const prefetchAPI = async (endpoint: string) => {
-      try {
-        const baseUrl = API_CONFIG.BASE_URL;
-        // Don't prefetch if we're on localhost but trying to hit a remote API (prevent CORS/Mixed content)
-        // or if we're on https but trying to hit http (Mixed content)
-        if (typeof window !== 'undefined' && window.location.protocol === 'https:' && baseUrl.startsWith('http://localhost')) {
-            return; 
-        }
-
-        const headers: HeadersInit = {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        };
-        const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
-        if (apiKey) {
-          (headers as Record<string, string>)['X-Frontend-Key'] = apiKey;
-        }
-        await fetch(`${baseUrl}${endpoint}`, {
-          method: 'GET',
-          headers,
-        });
-      } catch {
-        // Silent fail
-      }
-    };
-
-    // Prefetch common API endpoints
-    if (pathname === '/') {
-      prefetchAPI('/front/settings');
     }
   }, [pathname]);
 

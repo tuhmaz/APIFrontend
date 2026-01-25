@@ -1,60 +1,58 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useThemeStore, useSettingsStore } from '@/store/useStore';
-import { settingsService } from '@/lib/api/services/settings';
+import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
 
 export default function ThemeInitializer() {
   const { isDarkMode, primaryColor } = useThemeStore();
   const { siteName, siteFavicon, setSettings } = useSettingsStore();
+  const frontSettings = useFrontSettings();
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const data = await settingsService.getAll();
-        const siteNameValue = (data as any).site_name ?? (data as any).siteName;
-        const siteEmailValue = (data as any).site_email ?? (data as any).siteEmail;
-        const siteUrlValue = (data as any).site_url ?? (data as any).siteUrl;
-        const siteLogoValue = (data as any).site_logo ?? (data as any).siteLogo;
-        const siteFaviconValue = (data as any).site_favicon ?? (data as any).siteFavicon;
-        
-        const siteDescription = (data as any).site_description ?? '';
-        const contactEmail = (data as any).contact_email ?? '';
-        const contactPhone = (data as any).contact_phone ?? '';
-        const contactAddress = (data as any).contact_address ?? '';
-        const recaptchaSiteKey = (data as any).recaptcha_site_key ?? '';
+    if (initializedRef.current) return;
+    initializedRef.current = true;
 
-        const socialLinks = {
-          facebook: (data as any).social_facebook,
-          twitter: (data as any).social_twitter,
-          linkedin: (data as any).social_linkedin,
-          instagram: (data as any).social_instagram,
-          whatsapp: (data as any).social_whatsapp,
-          youtube: (data as any).social_youtube,
-          tiktok: (data as any).social_tiktok,
-        };
+    const data: any = frontSettings || {};
+    const siteNameValue = data.site_name ?? data.siteName;
+    const siteEmailValue = data.site_email ?? data.siteEmail;
+    const siteUrlValue = data.site_url ?? data.siteUrl;
+    const siteLogoValue = data.site_logo ?? data.siteLogo;
+    const siteFaviconValue = data.site_favicon ?? data.siteFavicon;
 
-        const nextSettings: Parameters<typeof setSettings>[0] = {};
-        if (typeof siteNameValue === 'string') nextSettings.siteName = siteNameValue;
-        if (typeof siteEmailValue === 'string') nextSettings.siteEmail = siteEmailValue;
-        if (typeof siteUrlValue === 'string') nextSettings.siteUrl = siteUrlValue;
-        if (siteLogoValue === null || typeof siteLogoValue === 'string') nextSettings.siteLogo = siteLogoValue;
-        if (siteFaviconValue === null || typeof siteFaviconValue === 'string') nextSettings.siteFavicon = siteFaviconValue;
-        
-        nextSettings.siteDescription = siteDescription;
-        nextSettings.contactEmail = contactEmail;
-        nextSettings.contactPhone = contactPhone;
-        nextSettings.contactAddress = contactAddress;
-        if (typeof recaptchaSiteKey === 'string') nextSettings.recaptchaSiteKey = recaptchaSiteKey;
-        nextSettings.socialLinks = socialLinks;
+    const siteDescription = data.site_description ?? '';
+    const contactEmail = data.contact_email ?? '';
+    const contactPhone = data.contact_phone ?? '';
+    const contactAddress = data.contact_address ?? '';
+    const recaptchaSiteKey = data.recaptcha_site_key ?? '';
 
-        setSettings(nextSettings);
-      } catch {
-        return;
-      }
+    const socialLinks = {
+      facebook: data.social_facebook,
+      twitter: data.social_twitter,
+      linkedin: data.social_linkedin,
+      instagram: data.social_instagram,
+      whatsapp: data.social_whatsapp,
+      youtube: data.social_youtube,
+      tiktok: data.social_tiktok,
     };
-    fetchSettings();
-  }, [setSettings]);
+
+    const nextSettings: Parameters<typeof setSettings>[0] = {};
+    if (typeof siteNameValue === 'string') nextSettings.siteName = siteNameValue;
+    if (typeof siteEmailValue === 'string') nextSettings.siteEmail = siteEmailValue;
+    if (typeof siteUrlValue === 'string') nextSettings.siteUrl = siteUrlValue;
+    if (siteLogoValue === null || typeof siteLogoValue === 'string') nextSettings.siteLogo = siteLogoValue;
+    if (siteFaviconValue === null || typeof siteFaviconValue === 'string') nextSettings.siteFavicon = siteFaviconValue;
+
+    nextSettings.siteDescription = siteDescription;
+    nextSettings.contactEmail = contactEmail;
+    nextSettings.contactPhone = contactPhone;
+    nextSettings.contactAddress = contactAddress;
+    if (typeof recaptchaSiteKey === 'string') nextSettings.recaptchaSiteKey = recaptchaSiteKey;
+    nextSettings.socialLinks = socialLinks;
+
+    setSettings(nextSettings);
+  }, [frontSettings, setSettings]);
 
   useEffect(() => {
     // Update Title and Favicon

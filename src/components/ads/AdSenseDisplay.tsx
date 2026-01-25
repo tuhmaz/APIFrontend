@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import apiClient from '@/lib/api/client';
-import { API_ENDPOINTS } from '@/lib/api/config';
+import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
 
 interface AdSenseDisplayProps {
   slotType: 'download_top' | 'download_sidebar';
@@ -19,56 +18,35 @@ const AdSenseDisplay = ({ slotType, className = '' }: AdSenseDisplayProps) => {
   const [adCode, setAdCode] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const fetchedRef = useRef(false);
   const renderedRef = useRef(false);
+  const settings = useFrontSettings();
 
-  // Fetch ad code from settings
+  // Resolve ad code from SSR-provided settings (no client API calls)
   useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
+    const isMobile = window.innerWidth < 768;
 
-    const fetchAdCode = async () => {
+    // Map slot type to setting key
+    let targetKey = '';
+    if (slotType === 'download_top') {
+      targetKey = isMobile ? 'google_ads_mobile_download' : 'google_ads_desktop_download';
+    } else if (slotType === 'download_sidebar') {
+      targetKey = isMobile ? 'google_ads_mobile_download_2' : 'google_ads_desktop_download_2';
+    }
+
+    let code: any = (settings as any)?.[targetKey] || '';
+
+    // Handle base64 encoded ads
+    if (typeof code === 'string' && code.startsWith('__B64__')) {
       try {
-        const response = await apiClient.get<any>(API_ENDPOINTS.SETTINGS.GET_ALL);
-
-        let settings: Record<string, any> = {};
-        if (response?.data?.data) {
-          settings = response.data.data;
-        } else if (response?.data) {
-          settings = response.data;
-        }
-
-        const isMobile = window.innerWidth < 768;
-
-        // Map slot type to setting key
-        let targetKey = '';
-        if (slotType === 'download_top') {
-          targetKey = isMobile ? 'google_ads_mobile_download' : 'google_ads_desktop_download';
-        } else if (slotType === 'download_sidebar') {
-          targetKey = isMobile ? 'google_ads_mobile_download_2' : 'google_ads_desktop_download_2';
-        }
-
-        let code = settings[targetKey] || '';
-
-        // Handle base64 encoded ads
-        if (typeof code === 'string' && code.startsWith('__B64__')) {
-          try {
-            code = atob(code.slice(7));
-          } catch {
-            code = '';
-          }
-        }
-
-        setAdCode(code);
-        setIsLoaded(true);
-      } catch (error) {
-        console.warn('AdSenseDisplay: Failed to fetch ad settings', error);
-        setIsLoaded(true);
+        code = atob(code.slice(7));
+      } catch {
+        code = '';
       }
-    };
+    }
 
-    fetchAdCode();
-  }, [slotType]);
+    setAdCode(typeof code === 'string' ? code : '');
+    setIsLoaded(true);
+  }, [slotType, settings]);
 
   // Render ad code only once
   useEffect(() => {

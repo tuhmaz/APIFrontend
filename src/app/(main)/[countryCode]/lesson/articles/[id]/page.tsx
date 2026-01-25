@@ -13,7 +13,7 @@ import ArticleComments from '@/components/article/ArticleComments';
 import ClassHeader from '@/components/class/ClassHeader';
 import { STANDARD_CATEGORIES } from '@/components/subject/SemesterList';
 import { Calendar, Eye, User, ChevronLeft, Home } from 'lucide-react';
-import { ssrFetch, getSSRHeaders } from '@/lib/api/ssr-fetch';
+import { getFrontSettings } from '@/lib/front-settings';
 
 interface Props {
   params: Promise<{
@@ -48,21 +48,7 @@ const getArticle = async (id: string, countryCode: string) => {
 };
 
 const getPublicSettings = async (): Promise<Record<string, string | null>> => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-  try {
-    const res = await ssrFetch(`${baseUrl}/front/settings`, {
-      next: { revalidate: 300 },
-      headers: getSSRHeaders()
-    });
-    if (!res.ok) return {};
-    const json: any = await res.json().catch(() => null);
-    const body = json?.data ?? json;
-    const settings = body?.settings ?? body?.data ?? body;
-    if (settings && typeof settings === 'object') return settings as Record<string, string | null>;
-    return {};
-  } catch {
-    return {};
-  }
+  return getFrontSettings();
 };
 
 // Generate Metadata for SEO
