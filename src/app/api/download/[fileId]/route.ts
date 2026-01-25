@@ -24,9 +24,18 @@ export async function GET(
   console.log(`[Proxy] Fetching file from: ${backendUrl}`);
 
   try {
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const clientIp =
+      forwardedFor?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      request.headers.get('cf-connecting-ip') ||
+      request.headers.get('true-client-ip') ||
+      '127.0.0.1';
+
     const requestHeaders: Record<string, string> = {
       'Accept': '*/*', // Accept any content type
       'X-Requested-With': 'XMLHttpRequest',
+      'X-Forwarded-For': clientIp,
     };
 
     const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
