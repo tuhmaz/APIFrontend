@@ -1,4 +1,4 @@
-import { API_CONFIG } from './config';
+import { API_CONFIG, getApiUrl } from './config';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
@@ -22,6 +22,7 @@ class ApiClient {
   private retryDelay = 1000; // Base delay between retries (ms)
 
   constructor() {
+    // Default to public URL (will be overridden per-request for SSR)
     this.baseUrl = API_CONFIG.BASE_URL;
     if (!/^https?:\/\//i.test(this.baseUrl)) {
       this.baseUrl = 'http://localhost:8000/api';
@@ -29,6 +30,20 @@ class ApiClient {
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('token');
     }
+  }
+
+  /**
+   * Get the appropriate base URL based on current execution context
+   * - Server-side (SSR): Uses internal URL (localhost) for faster connection
+   * - Client-side (Browser): Uses public URL
+   */
+  private getCurrentBaseUrl(): string {
+    if (typeof window === 'undefined') {
+      // Server-side: use internal URL for faster localhost connection
+      return API_CONFIG.INTERNAL_URL;
+    }
+    // Client-side: use public URL
+    return this.baseUrl;
   }
 
   // Fetch with timeout
@@ -115,7 +130,8 @@ class ApiClient {
   private buildUrl(endpoint: string, params?: Record<string, string | number | boolean | undefined>): string {
     // Handle dynamic endpoints that already contain parameters in the path
     let finalEndpoint = endpoint;
-    
+    const baseUrl = this.getCurrentBaseUrl();
+
     if (params) {
       // Replace path parameters first (e.g., :id, {id})
       Object.entries(params).forEach(([key, value]) => {
@@ -125,9 +141,9 @@ class ApiClient {
           finalEndpoint = finalEndpoint.replace(`{${key}}`, String(value));
         }
       });
-      
+
       // Then add remaining params as query parameters
-      const url = new URL(`${this.baseUrl}${finalEndpoint}`);
+      const url = new URL(`${baseUrl}${finalEndpoint}`);
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && !finalEndpoint.includes(`:${key}`) && !finalEndpoint.includes(`{${key}}`)) {
           url.searchParams.append(key, String(value));
@@ -135,8 +151,8 @@ class ApiClient {
       });
       return url.toString();
     }
-    
-    return `${this.baseUrl}${finalEndpoint}`;
+
+    return `${baseUrl}${finalEndpoint}`;
   }
 
   private sanitizeReturnPath(path: string): string | null {
@@ -212,6 +228,13 @@ class ApiClient {
     // Use Next.js cache for server-side GET requests without auth
     const isServerSide = typeof window === 'undefined';
     const isGetRequest = !fetchOptions.method || fetchOptions.method === 'GET';
+
+    // Add Host header for SSR internal requests (Nginx routing)
+    if (isServerSide) {
+      const apiHostname = process.env.API_HOSTNAME || 'api.alemancenter.com';
+      (headers as Record<string, string>)['Host'] = apiHostname;
+    }
+
     const fetchConfig: RequestInit & { next?: { revalidate?: number | false } } = {
       ...fetchOptions,
       headers,
@@ -369,6 +392,7 @@ class ApiClient {
   // Upload file with FormData
   async upload<T>(endpoint: string, formData: FormData) {
     const url = this.buildUrl(endpoint);
+    const baseUrl = this.getCurrentBaseUrl();
     const headers: HeadersInit = {
       Accept: 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
@@ -378,6 +402,12 @@ class ApiClient {
     const frontendApiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
     if (frontendApiKey) {
       (headers as Record<string, string>)['X-Frontend-Key'] = frontendApiKey;
+    }
+
+    // Add Host header for SSR internal requests
+    if (typeof window === 'undefined') {
+      const apiHostname = process.env.API_HOSTNAME || 'api.alemancenter.com';
+      (headers as Record<string, string>)['Host'] = apiHostname;
     }
 
     const token = this.getToken();
@@ -400,8 +430,8 @@ class ApiClient {
       if (response.status === 401) {
         this.handleUnauthorizedRedirect();
       }
-      if (response.status === 404 && this.baseUrl.endsWith('/api')) {
-        const altBase = this.baseUrl.slice(0, -4);
+      if (response.status === 404 && baseUrl.endsWith('/api')) {
+        const altBase = baseUrl.slice(0, -4);
         const altUrl = new URL(`${altBase}${endpoint}`).toString();
         response = await fetch(altUrl, {
           method: 'POST',

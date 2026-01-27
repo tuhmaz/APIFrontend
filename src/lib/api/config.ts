@@ -1,8 +1,28 @@
 // API Configuration
 export const API_CONFIG = {
+  // Public URL for client-side requests (browser)
   BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
+
+  // Internal URL for SSR requests (server-to-server, faster)
+  // Uses localhost connection when on same server, bypasses DNS/SSL overhead
+  INTERNAL_URL: process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
+
   TIMEOUT: 30000,
 };
+
+/**
+ * Get the appropriate API URL based on execution context
+ * - Server-side (SSR): Uses internal URL for faster local connection
+ * - Client-side (Browser): Uses public URL
+ */
+export function getApiUrl(): string {
+  if (typeof window === 'undefined') {
+    // Server-side: use internal URL
+    return API_CONFIG.INTERNAL_URL;
+  }
+  // Client-side: use public URL
+  return API_CONFIG.BASE_URL;
+}
 
 // Available Countries (multi-database support)
 export const COUNTRIES = [

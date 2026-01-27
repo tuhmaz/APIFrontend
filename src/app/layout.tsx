@@ -15,7 +15,9 @@ const cairo = Cairo({
   subsets: ['arabic', 'latin'],
   display: 'swap',
   weight: ['400', '500', '600', '700'],
-  preload: true,
+  // Disable font preloading to avoid browser warnings about preloaded-but-unused font files.
+  // Fonts will still load on demand and `display: swap` keeps UX acceptable.
+  preload: false,
 });
 
 async function getPublicSettings(): Promise<Record<string, string | null>> {

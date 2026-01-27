@@ -1,7 +1,10 @@
 /**
  * SSR Fetch Utility with Timeout and Retry
  * Provides reliable server-side data fetching with automatic retries
+ * Uses internal API URL for faster server-to-server communication
  */
+
+import { API_CONFIG } from './config';
 
 const SSR_CONFIG = {
   timeout: 10000, // 10 seconds timeout
@@ -10,7 +13,39 @@ const SSR_CONFIG = {
 };
 
 /**
+ * Get the internal API base URL for SSR requests
+ * This uses localhost connection for faster performance
+ */
+export function getInternalApiUrl(): string {
+  return API_CONFIG.INTERNAL_URL;
+}
+
+/**
+ * Convert a public API URL to internal URL for SSR
+ * Example: https://api.example.com/api/users -> http://127.0.0.1:8000/api/users
+ */
+export function toInternalUrl(url: string): string {
+  const publicUrl = API_CONFIG.BASE_URL;
+  const internalUrl = API_CONFIG.INTERNAL_URL;
+
+  // If URL starts with public API URL, replace with internal
+  if (url.startsWith(publicUrl)) {
+    return url.replace(publicUrl, internalUrl);
+  }
+
+  // If URL is a relative path starting with /api, prepend internal URL
+  if (url.startsWith('/api')) {
+    // Remove /api from internal URL if it already has it
+    const baseInternal = internalUrl.replace(/\/api\/?$/, '');
+    return `${baseInternal}${url}`;
+  }
+
+  return url;
+}
+
+/**
  * Get common headers for SSR requests
+ * Includes Host header for internal requests so Nginx knows which vhost to use
  */
 export function getSSRHeaders(countryId?: string): HeadersInit {
   const headers: HeadersInit = {
@@ -27,6 +62,11 @@ export function getSSRHeaders(countryId?: string): HeadersInit {
   if (countryId) {
     (headers as Record<string, string>)['X-Country-Id'] = countryId;
   }
+
+  // Add Host header for internal requests (Nginx needs this to route to correct vhost)
+  // Extract hostname from public API URL
+  const apiHostname = process.env.API_HOSTNAME || 'api.alemancenter.com';
+  (headers as Record<string, string>)['Host'] = apiHostname;
 
   return headers;
 }
