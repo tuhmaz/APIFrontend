@@ -4,7 +4,7 @@
  * Uses internal API URL for faster server-to-server communication
  */
 
-import { API_CONFIG } from './config';
+import { API_CONFIG, getApiHostname } from './config';
 
 const SSR_CONFIG = {
   timeout: 10000, // 10 seconds timeout
@@ -64,9 +64,7 @@ export function getSSRHeaders(countryId?: string): HeadersInit {
   }
 
   // Add Host header for internal requests (Nginx needs this to route to correct vhost)
-  // Extract hostname from public API URL
-  const apiHostname = process.env.API_HOSTNAME || 'api.alemancenter.com';
-  (headers as Record<string, string>)['Host'] = apiHostname;
+  (headers as Record<string, string>)['Host'] = getApiHostname();
 
   return headers;
 }

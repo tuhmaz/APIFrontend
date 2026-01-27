@@ -1,4 +1,4 @@
-import { API_CONFIG, getApiUrl } from './config';
+import { API_CONFIG, getApiUrl, getApiHostname } from './config';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
@@ -231,8 +231,7 @@ class ApiClient {
 
     // Add Host header for SSR internal requests (Nginx routing)
     if (isServerSide) {
-      const apiHostname = process.env.API_HOSTNAME || 'api.alemancenter.com';
-      (headers as Record<string, string>)['Host'] = apiHostname;
+      (headers as Record<string, string>)['Host'] = getApiHostname();
     }
 
     const fetchConfig: RequestInit & { next?: { revalidate?: number | false } } = {
@@ -406,8 +405,7 @@ class ApiClient {
 
     // Add Host header for SSR internal requests
     if (typeof window === 'undefined') {
-      const apiHostname = process.env.API_HOSTNAME || 'api.alemancenter.com';
-      (headers as Record<string, string>)['Host'] = apiHostname;
+      (headers as Record<string, string>)['Host'] = getApiHostname();
     }
 
     const token = this.getToken();

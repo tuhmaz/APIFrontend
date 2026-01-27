@@ -24,6 +24,32 @@ export function getApiUrl(): string {
   return API_CONFIG.BASE_URL;
 }
 
+/**
+ * Get the API hostname for Host header (used in SSR internal requests)
+ * Extracts hostname from NEXT_PUBLIC_API_URL or uses API_HOSTNAME env var
+ * This ensures Nginx routes the request to the correct virtual host
+ */
+export function getApiHostname(): string {
+  // First check for explicit API_HOSTNAME env var
+  if (process.env.API_HOSTNAME) {
+    return process.env.API_HOSTNAME;
+  }
+
+  // Extract hostname from public API URL
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (apiUrl) {
+    try {
+      const url = new URL(apiUrl);
+      return url.hostname;
+    } catch {
+      // Invalid URL, fall through to default
+    }
+  }
+
+  // Default for local development
+  return 'localhost';
+}
+
 // Available Countries (multi-database support)
 export const COUNTRIES = [
   { id: '1', code: 'jo', name: 'الأردن' },
