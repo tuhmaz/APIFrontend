@@ -237,6 +237,8 @@ class ApiClient {
     const fetchConfig: RequestInit & { next?: { revalidate?: number | false } } = {
       ...fetchOptions,
       headers,
+      // Include credentials for CORS requests (cookies, auth headers)
+      credentials: isServerSide ? 'omit' : 'include',
     };
 
     // Enable Next.js caching for public GET requests on server
