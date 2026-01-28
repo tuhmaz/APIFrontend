@@ -4,6 +4,54 @@ import { dirname } from "node:path";
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 
+// ==============================================
+// Dynamic Domain Configuration from Environment
+// ==============================================
+// Extract hostnames from environment variables
+const getHostFromUrl = (url: string | undefined): string | null => {
+  if (!url) return null;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+};
+
+// API hostname (e.g., api.example.com)
+const apiHost = getHostFromUrl(process.env.NEXT_PUBLIC_API_URL);
+// App hostname (e.g., example.com)
+const appHost = getHostFromUrl(process.env.NEXT_PUBLIC_APP_URL);
+
+// Build dynamic remote patterns for images
+const buildRemotePatterns = () => {
+  const patterns: Array<{
+    protocol: 'http' | 'https';
+    hostname: string;
+    port?: string;
+    pathname?: string;
+  }> = [
+    // Always allow these (external services)
+    { protocol: 'https', hostname: 'api.dicebear.com' },
+    { protocol: 'https', hostname: 'lh3.googleusercontent.com', pathname: '/**' },
+    { protocol: 'https', hostname: '*.googleusercontent.com', pathname: '/**' },
+    // Local development
+    { protocol: 'http', hostname: 'localhost', port: '8000', pathname: '/**' },
+    { protocol: 'http', hostname: '127.0.0.1', port: '8000', pathname: '/**' },
+  ];
+
+  // Add API host from environment
+  if (apiHost) {
+    patterns.push({ protocol: 'https', hostname: apiHost, pathname: '/**' });
+  }
+
+  // Add App host from environment
+  if (appHost && appHost !== apiHost) {
+    patterns.push({ protocol: 'https', hostname: appHost, pathname: '/**' });
+  }
+
+  return patterns;
+};
+
 const nextConfig: NextConfig = {
   // Performance optimizations
   poweredByHeader: false,
@@ -18,44 +66,7 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'api.dicebear.com',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '8000',
-        pathname: '/**',
-      },
-      {
-        protocol: 'http',
-        hostname: '127.0.0.1',
-        port: '8000',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'api.alemancenter.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'alemancenter.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: '*.googleusercontent.com',
-        pathname: '/**',
-      },
-    ],
+    remotePatterns: buildRemotePatterns(),
   },
 
   // Experimental features for performance
@@ -172,14 +183,10 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    // Use API domain in production, localhost in development
-    let apiUrl = process.env.NODE_ENV === 'production'
-      ? 'https://api.alemancenter.com'
+    // Get API base URL from environment (remove /api suffix if present)
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
       : 'http://localhost:8000';
-
-    if (process.env.NEXT_PUBLIC_API_URL) {
-      apiUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '');
-    }
 
     return [
       {
