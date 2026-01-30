@@ -2,9 +2,11 @@
  * SSR Fetch Utility with Timeout and Retry
  * Provides reliable server-side data fetching with automatic retries
  * Uses internal API URL for faster server-to-server communication
+ * Supports SSL bypass for localhost HTTPS connections
  */
 
 import { API_CONFIG, getApiHostname } from './config';
+import { universalFetch, shouldUseInternalFetch } from './internal-fetch';
 
 const SSR_CONFIG = {
   timeout: 10000, // 10 seconds timeout
@@ -91,6 +93,7 @@ export function getSSRHeaders(countryId?: string): HeadersInit {
 
 /**
  * Fetch with timeout
+ * Uses universalFetch for localhost HTTPS with SSL bypass
  */
 async function fetchWithTimeout(
   url: string,
@@ -101,6 +104,20 @@ async function fetchWithTimeout(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
+    // Use universalFetch which handles localhost HTTPS with SSL bypass
+    const useInternalFetch = shouldUseInternalFetch(url);
+
+    if (useInternalFetch) {
+      // For internal fetch, handle timeout differently (it has its own timeout)
+      clearTimeout(timeoutId);
+      const response = await universalFetch(url, {
+        ...options,
+        timeout,
+      });
+      return response;
+    }
+
+    // Standard fetch for external URLs
     const response = await fetch(url, {
       ...options,
       signal: controller.signal,

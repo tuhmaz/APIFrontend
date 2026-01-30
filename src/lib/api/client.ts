@@ -1,4 +1,5 @@
 import { API_CONFIG, getApiUrl, getApiHostname } from './config';
+import { universalFetch, shouldUseInternalFetch } from './internal-fetch';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
@@ -47,6 +48,7 @@ class ApiClient {
   }
 
   // Fetch with timeout
+  // Uses universalFetch for localhost HTTPS with SSL bypass (SSR internal requests)
   private async fetchWithTimeout(
     url: string,
     options: RequestInit,
@@ -56,6 +58,20 @@ class ApiClient {
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
+      // Check if we should use internal fetch (localhost with SSL bypass)
+      const useInternalFetch = shouldUseInternalFetch(url);
+
+      if (useInternalFetch) {
+        // For internal fetch, handle timeout differently (it has its own timeout)
+        clearTimeout(timeoutId);
+        const response = await universalFetch(url, {
+          ...options,
+          timeout,
+        } as RequestInit & { timeout?: number });
+        return response;
+      }
+
+      // Standard fetch for external URLs
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
