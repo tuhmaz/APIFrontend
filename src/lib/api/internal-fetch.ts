@@ -185,12 +185,13 @@ export async function universalFetch(
         blob: () => { throw new Error('blob not implemented'); },
         arrayBuffer: () => { throw new Error('arrayBuffer not implemented'); },
         formData: () => { throw new Error('formData not implemented'); },
+        bytes: () => { throw new Error('bytes not implemented'); },
         body: null,
         bodyUsed: false,
         redirected: false,
         type: 'basic' as ResponseType,
         url: url,
-      } as Response;
+      } as unknown as Response;
     } catch (error) {
       // If internal fetch fails, fall back to standard fetch
       console.warn('[Internal Fetch] Failed, falling back to standard fetch:', error);

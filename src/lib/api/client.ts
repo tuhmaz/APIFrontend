@@ -1,4 +1,4 @@
-import { API_CONFIG, getApiUrl, getApiHostname } from './config';
+import { API_CONFIG, getApiHostname } from './config';
 import { universalFetch, shouldUseInternalFetch } from './internal-fetch';
 
 interface RequestOptions extends RequestInit {

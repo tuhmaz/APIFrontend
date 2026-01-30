@@ -80,7 +80,7 @@ export default function NotificationsDropdown() {
   };
 
   const getLink = (notification: Notification) => {
-    let url = notification.data.action_url || notification.data.url;
+    const url = notification.data.action_url || notification.data.url;
 
     if (url) {
       // Fix article links to point to public interface instead of dashboard

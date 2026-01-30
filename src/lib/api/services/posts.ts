@@ -123,7 +123,7 @@ export const postsService = {
       API_ENDPOINTS.POSTS.LIST,
       { country, search: title, per_page: 20 }
     );
-    // @ts-ignore
+    // @ts-expect-error - response structure varies
     const list = response.data?.data || (Array.isArray(response.data) ? response.data : []) || [];
     const found = list.some((p: Post) => (p.title || '').trim().toLowerCase() === title.trim().toLowerCase());
     return !found;
