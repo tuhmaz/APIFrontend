@@ -211,7 +211,10 @@ class ApiClient {
     }
 
     // Add Country Header
+    // SSR: Check params for country_id (passed explicitly)
+    // Browser: Check localStorage for stored country
     if (typeof window !== 'undefined') {
+      // Browser: Get from localStorage
       try {
         const countryStorage = localStorage.getItem('country-storage');
         if (countryStorage) {
@@ -223,6 +226,22 @@ class ApiClient {
         }
       } catch {
         // Fallback or ignore
+      }
+    } else {
+      // SSR: Get from params if provided (country_id or database)
+      if (params?.country_id) {
+        (headers as Record<string, string>)['X-Country-Id'] = String(params.country_id);
+      }
+      if (params?.database) {
+        (headers as Record<string, string>)['X-Country-Code'] = String(params.database);
+        // Map country code to ID if not already set
+        if (!params?.country_id) {
+          const countryMap: Record<string, string> = { 'jo': '1', 'sa': '2', 'eg': '3', 'ps': '4' };
+          const countryId = countryMap[String(params.database)];
+          if (countryId) {
+            (headers as Record<string, string>)['X-Country-Id'] = countryId;
+          }
+        }
       }
     }
 
