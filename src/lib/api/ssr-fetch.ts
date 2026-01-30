@@ -13,6 +13,26 @@ const SSR_CONFIG = {
 };
 
 /**
+ * Generate unique request ID for tracing
+ */
+function generateRequestId(): string {
+  return `ssr_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+}
+
+/**
+ * Log SSR request/response for debugging (works in both dev and production)
+ */
+function logSSR(level: 'info' | 'warn' | 'error', message: string, data?: Record<string, any>) {
+  const timestamp = new Date().toISOString();
+  const logData = { timestamp, ...data };
+
+  // Always log errors, only log info/warn in development
+  if (level === 'error' || process.env.NODE_ENV === 'development') {
+    console[level](`[SSR] ${message}`, JSON.stringify(logData));
+  }
+}
+
+/**
  * Get the internal API base URL for SSR requests
  * This uses localhost connection for faster performance
  */
@@ -100,11 +120,23 @@ export async function ssrFetch(
   config?: Partial<typeof SSR_CONFIG>
 ): Promise<Response> {
   const { timeout, maxRetries, retryDelay } = { ...SSR_CONFIG, ...config };
+  const requestId = generateRequestId();
   let lastError: Error | null = null;
+  const startTime = Date.now();
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await fetchWithTimeout(url, options, timeout);
+
+      // Log successful request with timing
+      logSSR('info', 'Request completed', {
+        requestId,
+        url,
+        status: response.status,
+        attempt: attempt + 1,
+        duration: Date.now() - startTime,
+      });
+
       return response;
     } catch (error: any) {
       lastError = error;
@@ -117,13 +149,19 @@ export async function ssrFetch(
         error.message?.includes('ECONNREFUSED') ||
         error.message?.includes('ETIMEDOUT');
 
+      // Log retry attempt
+      logSSR('warn', `Request failed, ${isRetryable ? 'retrying' : 'not retryable'}`, {
+        requestId,
+        url,
+        attempt: attempt + 1,
+        maxRetries: maxRetries + 1,
+        error: error.message,
+        errorName: error.name,
+        isRetryable,
+      });
+
       if (!isRetryable) {
         throw error;
-      }
-
-      // Log retry attempt (only in development)
-      if (process.env.NODE_ENV === 'development') {
-        console.warn(`[SSR] Retry ${attempt + 1}/${maxRetries} for ${url}`);
       }
 
       // Don't wait after the last attempt
@@ -134,18 +172,29 @@ export async function ssrFetch(
     }
   }
 
+  // Log final failure
+  logSSR('error', 'Request failed after all retries', {
+    requestId,
+    url,
+    totalAttempts: maxRetries + 1,
+    duration: Date.now() - startTime,
+    lastError: lastError?.message,
+  });
+
   throw lastError || new Error('SSR fetch failed after retries');
 }
 
 /**
  * SSR Fetch JSON data with error handling
- * Returns null on error instead of throwing
+ * Returns defaultValue on error instead of throwing
  */
 export async function ssrFetchJson<T>(
   url: string,
   options: RequestInit & { next?: { revalidate?: number | false } } = {},
   defaultValue: T
 ): Promise<T> {
+  const requestId = generateRequestId();
+
   try {
     const response = await ssrFetch(url, {
       ...options,
@@ -156,18 +205,33 @@ export async function ssrFetchJson<T>(
     });
 
     if (!response.ok) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error(`[SSR] HTTP ${response.status} for ${url}`);
-      }
+      logSSR('error', 'HTTP error response', {
+        requestId,
+        url,
+        status: response.status,
+        statusText: response.statusText,
+      });
       return defaultValue;
     }
 
     const json = await response.json();
+
+    // Log successful data fetch
+    logSSR('info', 'JSON data fetched', {
+      requestId,
+      url,
+      hasData: !!json?.data,
+      dataType: typeof (json?.data ?? json),
+    });
+
     return json?.data ?? json ?? defaultValue;
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[SSR] Error fetching ${url}:`, error);
-    }
+  } catch (error: any) {
+    logSSR('error', 'Failed to fetch JSON', {
+      requestId,
+      url,
+      error: error.message,
+      defaultValueUsed: true,
+    });
     return defaultValue;
   }
 }

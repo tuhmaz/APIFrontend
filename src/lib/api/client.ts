@@ -189,14 +189,20 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const { params, timeout, ...fetchOptions } = options;
     const url = this.buildUrl(endpoint, params);
+    const isGetRequest = !fetchOptions.method || fetchOptions.method === 'GET';
 
+    // Build headers - don't send Content-Type for GET requests (no body)
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
       Accept: 'application/json',
       'X-App-Locale': 'ar',
       'X-Requested-With': 'XMLHttpRequest',
       ...(options.headers || {}),
     };
+
+    // Only add Content-Type for requests with body (POST, PUT, PATCH)
+    if (!isGetRequest) {
+      (headers as Record<string, string>)['Content-Type'] = 'application/json';
+    }
 
     // Add Frontend API Key if available
     const frontendApiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
@@ -227,7 +233,6 @@ class ApiClient {
 
     // Use Next.js cache for server-side GET requests without auth
     const isServerSide = typeof window === 'undefined';
-    const isGetRequest = !fetchOptions.method || fetchOptions.method === 'GET';
 
     // Add Host header for SSR internal requests (Nginx routing)
     if (isServerSide) {
