@@ -359,6 +359,30 @@ export interface AnalyticsData {
   authors: number[];
 }
 
+export interface ActiveVisitor {
+  ip: string;
+  country: string;
+  city: string;
+  browser: string;
+  os: string;
+  user_agent: string;
+  current_page: string;
+  current_page_full: string;
+  is_member: boolean;
+  user_id?: number;
+  user_name?: string;
+  user_email?: string;
+  user_role?: string;
+  last_active: string;
+  session_start: string;
+  history?: Array<{
+    url: string;
+    time: string;
+    device: string;
+    location: string;
+  }>;
+}
+
 export interface VisitorAnalyticsData {
   visitor_stats: {
     current: number;
@@ -368,7 +392,7 @@ export interface VisitorAnalyticsData {
     total_combined_today: number;
     change: number;
     history: any;
-    active_visitors: any[];
+    active_visitors: ActiveVisitor[];
   };
   user_stats: {
     total: number;

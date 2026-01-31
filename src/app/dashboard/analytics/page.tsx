@@ -699,16 +699,32 @@ export default function AnalyticsPage() {
                           </span>
                         </td>
                         <td className="py-3 px-3 text-muted-foreground hidden md:table-cell">
-                          {visitor.browser}
+                          <span
+                            title={visitor.browser === 'Unknown' ? visitor.user_agent : undefined}
+                            className={cn(
+                              visitor.browser === 'Unknown' && 'cursor-help border-b border-dashed border-muted-foreground'
+                            )}
+                          >
+                            {visitor.browser || 'Unknown'}
+                          </span>
                         </td>
                         <td className="py-3 px-3 text-muted-foreground hidden lg:table-cell">
-                          <div className="flex items-center gap-1.5">
+                          <div
+                            className="flex items-center gap-1.5"
+                            title={visitor.os === 'Unknown' ? visitor.user_agent : undefined}
+                          >
                             {visitor.os?.toLowerCase().includes('windows') && <Monitor className="w-3.5 h-3.5" />}
                             {visitor.os?.toLowerCase().includes('mac') && <Monitor className="w-3.5 h-3.5" />}
                             {visitor.os?.toLowerCase().includes('android') && <Smartphone className="w-3.5 h-3.5" />}
                             {visitor.os?.toLowerCase().includes('ios') && <Smartphone className="w-3.5 h-3.5" />}
                             {visitor.os?.toLowerCase().includes('linux') && <Monitor className="w-3.5 h-3.5" />}
-                            {visitor.os}
+                            {visitor.os?.toLowerCase().includes('bot') && <Activity className="w-3.5 h-3.5 text-orange-500" />}
+                            {visitor.os?.toLowerCase().includes('server') && <Monitor className="w-3.5 h-3.5 text-purple-500" />}
+                            <span className={cn(
+                              visitor.os === 'Unknown' && 'cursor-help border-b border-dashed border-muted-foreground'
+                            )}>
+                              {visitor.os || 'Unknown'}
+                            </span>
                           </div>
                         </td>
                         <td className="py-3 px-3">
