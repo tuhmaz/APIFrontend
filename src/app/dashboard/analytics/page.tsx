@@ -56,9 +56,10 @@ export default function AnalyticsPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Active visitors pagination
+  // Active visitors pagination and filtering
   const [visitorsPage, setVisitorsPage] = useState(1);
   const [visitorsSearch, setVisitorsSearch] = useState('');
+  const [visitorsFilter, setVisitorsFilter] = useState<'all' | 'members' | 'guests' | 'bots'>('all');
   const VISITORS_PER_PAGE = 25;
 
   const fetchData = useCallback(async (isManualRefresh = false) => {
@@ -558,8 +559,41 @@ export default function AnalyticsPage() {
 
       {/* Active Visitors Section */}
       {data.visitor_stats.active_visitors && data.visitor_stats.active_visitors.length > 0 && (() => {
-        // Filter visitors based on search
+        // Helper function to check if visitor is a bot
+        const isBot = (visitor: typeof data.visitor_stats.active_visitors[0]) =>
+          visitor.os?.toLowerCase().includes('bot') || visitor.browser?.toLowerCase() === 'bot';
+
+        // Helper function to check if visitor is a guest (not member and not bot)
+        const isGuest = (visitor: typeof data.visitor_stats.active_visitors[0]) =>
+          !visitor.is_member && !isBot(visitor);
+
+        // Count members, bots, and guests
+        const membersCount = data.visitor_stats.active_visitors.filter(v => v.is_member).length;
+        const botsCount = data.visitor_stats.active_visitors.filter(v => isBot(v)).length;
+        const guestsCount = data.visitor_stats.active_visitors.filter(v => isGuest(v)).length;
+
+        // Filter visitors based on type filter AND search
         const filteredVisitors = data.visitor_stats.active_visitors.filter(visitor => {
+          // First apply type filter
+          let passesTypeFilter = true;
+          switch (visitorsFilter) {
+            case 'members':
+              passesTypeFilter = visitor.is_member === true;
+              break;
+            case 'guests':
+              passesTypeFilter = isGuest(visitor);
+              break;
+            case 'bots':
+              passesTypeFilter = isBot(visitor);
+              break;
+            case 'all':
+            default:
+              passesTypeFilter = true;
+          }
+
+          if (!passesTypeFilter) return false;
+
+          // Then apply search filter
           if (!visitorsSearch) return true;
           const searchLower = visitorsSearch.toLowerCase();
           return (
@@ -579,9 +613,11 @@ export default function AnalyticsPage() {
         const endIndex = startIndex + VISITORS_PER_PAGE;
         const currentVisitors = filteredVisitors.slice(startIndex, endIndex);
 
-        // Count members vs guests
-        const membersCount = data.visitor_stats.active_visitors.filter(v => v.is_member).length;
-        const guestsCount = data.visitor_stats.active_visitors.length - membersCount;
+        // Handle filter click
+        const handleFilterClick = (filter: 'all' | 'members' | 'guests' | 'bots') => {
+          setVisitorsFilter(filter);
+          setVisitorsPage(1); // Reset to first page when filter changes
+        };
 
         return (
           <Card>
@@ -596,26 +632,93 @@ export default function AnalyticsPage() {
                   </span>
                 </CardTitle>
 
-                {/* Stats badges */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-full">
-                    <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                {/* Stats badges - Clickable for filtering */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <button
+                    onClick={() => handleFilterClick('all')}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer",
+                      visitorsFilter === 'all'
+                        ? "bg-emerald-500 dark:bg-emerald-600 ring-2 ring-emerald-300 dark:ring-emerald-400"
+                        : "bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/50"
+                    )}
+                  >
+                    <Users className={cn(
+                      "w-4 h-4",
+                      visitorsFilter === 'all' ? "text-white" : "text-emerald-600 dark:text-emerald-400"
+                    )} />
+                    <span className={cn(
+                      "text-sm font-medium",
+                      visitorsFilter === 'all' ? "text-white" : "text-emerald-700 dark:text-emerald-300"
+                    )}>
                       {data.visitor_stats.active_visitors.length.toLocaleString('ar-EG')} إجمالي
                     </span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                    <UserCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                  </button>
+
+                  <button
+                    onClick={() => handleFilterClick('members')}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer",
+                      visitorsFilter === 'members'
+                        ? "bg-blue-500 dark:bg-blue-600 ring-2 ring-blue-300 dark:ring-blue-400"
+                        : "bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50"
+                    )}
+                  >
+                    <UserCheck className={cn(
+                      "w-4 h-4",
+                      visitorsFilter === 'members' ? "text-white" : "text-blue-600 dark:text-blue-400"
+                    )} />
+                    <span className={cn(
+                      "text-sm font-medium",
+                      visitorsFilter === 'members' ? "text-white" : "text-blue-700 dark:text-blue-300"
+                    )}>
                       {membersCount.toLocaleString('ar-EG')} عضو
                     </span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-full">
-                    <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  </button>
+
+                  <button
+                    onClick={() => handleFilterClick('guests')}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer",
+                      visitorsFilter === 'guests'
+                        ? "bg-gray-500 dark:bg-gray-600 ring-2 ring-gray-300 dark:ring-gray-400"
+                        : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    )}
+                  >
+                    <User className={cn(
+                      "w-4 h-4",
+                      visitorsFilter === 'guests' ? "text-white" : "text-gray-600 dark:text-gray-400"
+                    )} />
+                    <span className={cn(
+                      "text-sm font-medium",
+                      visitorsFilter === 'guests' ? "text-white" : "text-gray-700 dark:text-gray-300"
+                    )}>
                       {guestsCount.toLocaleString('ar-EG')} زائر
                     </span>
-                  </div>
+                  </button>
+
+                  {botsCount > 0 && (
+                    <button
+                      onClick={() => handleFilterClick('bots')}
+                      className={cn(
+                        "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer",
+                        visitorsFilter === 'bots'
+                          ? "bg-orange-500 dark:bg-orange-600 ring-2 ring-orange-300 dark:ring-orange-400"
+                          : "bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50"
+                      )}
+                    >
+                      <Activity className={cn(
+                        "w-4 h-4",
+                        visitorsFilter === 'bots' ? "text-white" : "text-orange-600 dark:text-orange-400"
+                      )} />
+                      <span className={cn(
+                        "text-sm font-medium",
+                        visitorsFilter === 'bots' ? "text-white" : "text-orange-700 dark:text-orange-300"
+                      )}>
+                        {botsCount.toLocaleString('ar-EG')} بوت
+                      </span>
+                    </button>
+                  )}
                 </div>
               </div>
 
