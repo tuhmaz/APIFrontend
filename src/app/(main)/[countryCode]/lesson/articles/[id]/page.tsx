@@ -236,7 +236,7 @@ export default async function ArticlePage({ params }: Props) {
     author: {
       '@type': 'Person',
       name: article.author?.name || 'Admin',
-      url: article.author?.id ? `/${countryCode}/profile/${article.author.id}` : undefined,
+      url: (baseUrl ? `${baseUrl}/members` : '/members') + (article.author?.id ? `?user_id=${article.author.id}` : ''),
     },
     publisher: {
       '@type': 'Organization',

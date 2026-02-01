@@ -136,22 +136,33 @@ export default async function HomePage() {
     .toString()
     .trim() || `تصفح جميع الصفوف والمواد الدراسية للمنهاج ${country.name} على منصة ${resolvedSiteName} التعليمية.`;
 
-  const organizationSchema = {
+  const schemaGraph = {
     '@context': 'https://schema.org',
-    '@type': 'EducationalOrganization',
-    name: resolvedSiteName,
-    description: jsonLdDescription,
-    inLanguage: 'ar',
-    ...(canonicalUrl ? { url: canonicalUrl, '@id': `${canonicalUrl.replace(/\/$/, '')}#organization` } : {}),
-    ...(logoUrl ? { logo: logoUrl } : {}),
-    address: {
-      '@type': 'PostalAddress',
-      addressCountry: country.name,
-    },
-    areaServed: {
-      '@type': 'Country',
-      name: country.name,
-    },
+    '@graph': [
+      {
+        '@type': 'EducationalOrganization',
+        ...(canonicalUrl ? { '@id': `${canonicalUrl.replace(/\/$/, '')}#organization`, url: canonicalUrl } : {}),
+        name: resolvedSiteName,
+        description: jsonLdDescription,
+        ...(logoUrl ? { logo: logoUrl } : {}),
+        address: {
+          '@type': 'PostalAddress',
+          addressCountry: country.name,
+        },
+        areaServed: {
+          '@type': 'Country',
+          name: country.name,
+        },
+      },
+      {
+        '@type': 'WebSite',
+        ...(canonicalUrl ? { '@id': `${canonicalUrl.replace(/\/$/, '')}#website`, url: canonicalUrl } : {}),
+        name: resolvedSiteName,
+        description: jsonLdDescription,
+        inLanguage: 'ar',
+        ...(canonicalUrl ? { publisher: { '@id': `${canonicalUrl.replace(/\/$/, '')}#organization` } } : {}),
+      }
+    ]
   };
 
   // Extract ad settings for home page
@@ -168,7 +179,7 @@ export default async function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(organizationSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(schemaGraph) }}
       />
       <HomeContent
         country={country}

@@ -16,6 +16,7 @@ import {
   Send,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import Image from '@/components/common/AppImage';
 import { usersService } from '@/lib/api/services/users';
 import { rolesService } from '@/lib/api/services/roles';
@@ -42,6 +43,9 @@ export default function MembersPage() {
     search: '',
     role: '',
   });
+
+  const searchParams = useSearchParams();
+  const userIdFromUrl = searchParams.get('user_id');
 
   const normalizeRoleName = (value: unknown) => {
     if (typeof value !== 'string') return '';
@@ -161,6 +165,15 @@ export default function MembersPage() {
     setSelectedUser(user);
     setIsProfileModalOpen(true);
   };
+
+  useEffect(() => {
+    if (userIdFromUrl && users.length > 0 && !isProfileModalOpen) {
+      const userToSelect = users.find((u) => String(u.id) === String(userIdFromUrl));
+      if (userToSelect) {
+        openProfile(userToSelect);
+      }
+    }
+  }, [userIdFromUrl, users, isProfileModalOpen]);
 
   const closeProfile = () => {
     setIsProfileModalOpen(false);

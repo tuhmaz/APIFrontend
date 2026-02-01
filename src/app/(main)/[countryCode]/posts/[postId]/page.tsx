@@ -235,6 +235,7 @@ export default async function PostPage({
     author: {
       '@type': 'Person',
       name: post.author?.name || 'Admin',
+      url: (baseUrl ? `${baseUrl}/members` : '/members') + (post.author?.id ? `?user_id=${post.author.id}` : ''),
     },
     publisher: {
       '@type': 'Organization',
