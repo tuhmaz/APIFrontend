@@ -346,22 +346,26 @@ export default function HomeContent({ country, classes, categories, initialSiteN
                 </div>
               )}
 
-              {/* Dynamic Ad Area - Client Side Only */}
-              {isMounted && (adSettings?.googleAdsDesktop || adSettings?.googleAdsMobile) && (
-                <div className="mt-8 relative overflow-hidden rounded-2xl">
-                  {/* Desktop Ad */}
-                  {adSettings.googleAdsDesktop && (
-                    <div
-                      className="hidden md:block"
-                      dangerouslySetInnerHTML={{ __html: adSettings.googleAdsDesktop }}
-                    />
-                  )}
-                  {/* Mobile Ad */}
-                  {adSettings.googleAdsMobile && (
-                    <div
-                      className="block md:hidden"
-                      dangerouslySetInnerHTML={{ __html: adSettings.googleAdsMobile }}
-                    />
+              {/* Dynamic Ad Area - Stabilized Layout */}
+              {(adSettings?.googleAdsDesktop || adSettings?.googleAdsMobile) && (
+                <div className="mt-8 relative overflow-hidden rounded-2xl min-h-[120px] bg-slate-50/50">
+                  {isMounted && (
+                    <>
+                      {/* Desktop Ad */}
+                      {adSettings.googleAdsDesktop && (
+                        <div
+                          className="hidden md:block"
+                          dangerouslySetInnerHTML={{ __html: adSettings.googleAdsDesktop }}
+                        />
+                      )}
+                      {/* Mobile Ad */}
+                      {adSettings.googleAdsMobile && (
+                        <div
+                          className="block md:hidden"
+                          dangerouslySetInnerHTML={{ __html: adSettings.googleAdsMobile }}
+                        />
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -442,10 +446,10 @@ export default function HomeContent({ country, classes, categories, initialSiteN
                 </div>
                 
                 <div className="mt-6 pt-4 border-t border-slate-100">
-                   <h4 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                   <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
                      <Clock3 className="w-4 h-4 text-blue-500" />
                      أحداث قادمة
-                   </h4>
+                   </h3>
                    {upcomingEvents.length > 0 ? (
                      <div className="space-y-2">
                        {upcomingEvents.map(e => (
@@ -500,23 +504,27 @@ export default function HomeContent({ country, classes, categories, initialSiteN
         </div>
       </div>
 
-      {/* Second Ad Position - Full Width Banner between sections - Client Side Only */}
-      {isMounted && (adSettings?.googleAdsDesktop2 || adSettings?.googleAdsMobile2) && (
+      {/* Second Ad Position - Full Width Banner between sections - Stabilized Layout */}
+      {(adSettings?.googleAdsDesktop2 || adSettings?.googleAdsMobile2) && (
         <div className="container mx-auto px-4 py-8">
-          <div className="relative overflow-hidden rounded-2xl">
-            {/* Desktop Ad */}
-            {adSettings.googleAdsDesktop2 && (
-              <div
-                className="hidden md:block"
-                dangerouslySetInnerHTML={{ __html: adSettings.googleAdsDesktop2 }}
-              />
-            )}
-            {/* Mobile Ad */}
-            {adSettings.googleAdsMobile2 && (
-              <div
-                className="block md:hidden"
-                dangerouslySetInnerHTML={{ __html: adSettings.googleAdsMobile2 }}
-              />
+          <div className="relative overflow-hidden rounded-2xl min-h-[120px] bg-slate-50/50">
+            {isMounted && (
+              <>
+                {/* Desktop Ad */}
+                {adSettings.googleAdsDesktop2 && (
+                  <div
+                    className="hidden md:block"
+                    dangerouslySetInnerHTML={{ __html: adSettings.googleAdsDesktop2 }}
+                  />
+                )}
+                {/* Mobile Ad */}
+                {adSettings.googleAdsMobile2 && (
+                  <div
+                    className="block md:hidden"
+                    dangerouslySetInnerHTML={{ __html: adSettings.googleAdsMobile2 }}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>

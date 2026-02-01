@@ -141,6 +141,7 @@ export default function DashboardHeader() {
           <button
             onClick={() => setShowNotifications(!showNotifications)}
             className="p-2 rounded-lg hover:bg-muted transition-colors relative"
+            aria-label="Show notifications"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (

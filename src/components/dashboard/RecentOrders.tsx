@@ -136,13 +136,13 @@ export default function RecentOrders() {
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-1">
-                      <button className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+                      <button className="p-1.5 rounded-lg hover:bg-muted transition-colors" aria-label="View order">
                         <Eye className="w-4 h-4 text-muted-foreground" />
                       </button>
-                      <button className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+                      <button className="p-1.5 rounded-lg hover:bg-muted transition-colors" aria-label="Edit order">
                         <Edit className="w-4 h-4 text-muted-foreground" />
                       </button>
-                      <button className="p-1.5 rounded-lg hover:bg-error/10 transition-colors">
+                      <button className="p-1.5 rounded-lg hover:bg-error/10 transition-colors" aria-label="Delete order">
                         <Trash2 className="w-4 h-4 text-error" />
                       </button>
                     </div>

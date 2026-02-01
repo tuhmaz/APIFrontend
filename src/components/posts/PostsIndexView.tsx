@@ -537,7 +537,7 @@ export default function PostsIndexView({
                   {searchQuery && (
                     <div className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-xs font-bold border border-purple-100">
                       بحث: {searchQuery}
-                      <button onClick={() => setSearchQuery('')} className="hover:text-purple-800">
+                      <button onClick={() => setSearchQuery('')} className="hover:text-purple-800" aria-label="Clear search">
                         <X size={14} />
                       </button>
                     </div>

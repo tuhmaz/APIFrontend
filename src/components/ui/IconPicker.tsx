@@ -92,9 +92,10 @@ export default function IconPicker({ value, onChange }: IconPickerProps) {
                     flex flex-col items-center justify-center gap-2 p-2 rounded-lg border transition-all hover:bg-primary/5 hover:border-primary/50
                     ${value === iconName ? 'bg-primary/10 border-primary ring-1 ring-primary' : 'border-transparent hover:shadow-sm'}
                   `}
-                  title={iconName}
-                  type="button"
-                >
+                    title={iconName}
+                    aria-label={iconName}
+                    type="button"
+                  >
                   <Icon className="w-6 h-6 text-slate-700" />
                 </button>
               );

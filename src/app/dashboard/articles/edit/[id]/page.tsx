@@ -833,6 +833,7 @@ export default function EditArticlePage() {
                     type="button"
                     role="switch"
                     aria-checked={formData.status}
+                    aria-label="Toggle publish status"
                     onClick={() => setFormData(prev => ({ ...prev, status: !prev.status }))}
                     className={`relative inline-flex h-[28px] w-[52px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                         formData.status ? 'bg-primary' : 'bg-input'

@@ -72,8 +72,9 @@ export default function Pagination({
               </span>
             ) : (
               <button
-                onClick={() => onPageChange(page as number)}
-                className={cn(
+            onClick={() => onPageChange(page as number)}
+            aria-label={`Go to page ${page}`}
+            className={cn(
                   "flex items-center justify-center w-9 h-9 rounded-lg text-sm font-medium transition-colors",
                   currentPage === page
                     ? "bg-blue-600 text-white shadow-sm"

@@ -1089,10 +1089,10 @@ function SecurityTab({
               >
                 حذف الكل
               </Button>
-              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors" aria-label="Search logs">
                 <Search size={18} />
               </button>
-              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors" aria-label="Filter logs">
                 <Filter size={18} />
               </button>
             </div>
