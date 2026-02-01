@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import {
   Search,
@@ -28,7 +28,7 @@ import Modal from '@/components/ui/Modal';
 import { Input, Textarea } from '@/components/ui/Input';
 import toast from 'react-hot-toast';
 
-export default function MembersPage() {
+function MembersContent() {
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
@@ -633,5 +633,17 @@ export default function MembersPage() {
         </form>
       </Modal>
     </div>
+  );
+}
+
+export default function MembersPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <MembersContent />
+    </Suspense>
   );
 }
