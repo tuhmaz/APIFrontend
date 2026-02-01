@@ -387,15 +387,17 @@ export default function HomeContent({ country, classes, categories, initialSiteN
                   </span>
                 </div>
                 <div className="flex gap-1">
-                  <button 
-                    onClick={() => setCalendarDate(subMonths(calendarDate, 1))} 
+                  <button
+                    onClick={() => setCalendarDate(subMonths(calendarDate, 1))}
                     className="w-9 h-9 flex items-center justify-center hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-600 border border-transparent hover:border-slate-100"
+                    aria-label="الشهر السابق"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
-                  <button 
-                    onClick={() => setCalendarDate(addMonths(calendarDate, 1))} 
+                  <button
+                    onClick={() => setCalendarDate(addMonths(calendarDate, 1))}
                     className="w-9 h-9 flex items-center justify-center hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-600 border border-transparent hover:border-slate-100"
+                    aria-label="الشهر التالي"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
@@ -405,7 +407,7 @@ export default function HomeContent({ country, classes, categories, initialSiteN
               <div className="p-6">
                 <div className="grid grid-cols-7 mb-4">
                   {daysAr.map(day => (
-                    <div key={day} className="text-center text-xs font-bold text-slate-400 py-2">
+                    <div key={day} className="text-center text-xs font-bold text-slate-600 py-2">
                       {day}
                     </div>
                   ))}

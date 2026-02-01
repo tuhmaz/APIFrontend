@@ -229,7 +229,7 @@ export default function Footer({ initialSettings }: { initialSettings?: Settings
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <div className="text-center md:text-right">
-              &copy; {currentYear} <Link href="/" className="font-bold text-primary hover:underline">{displaySiteName}</Link>. جميع الحقوق محفوظة.
+              &copy; {currentYear} <Link href="/" className="font-bold text-foreground hover:text-primary hover:underline transition-colors">{displaySiteName}</Link>. جميع الحقوق محفوظة.
             </div>
             
             <div className="flex items-center gap-1.5 bg-muted/50 px-4 py-2 rounded-full">
