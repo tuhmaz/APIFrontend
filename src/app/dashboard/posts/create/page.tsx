@@ -20,6 +20,7 @@ export default function CreatePostPage() {
   const router = useRouter();
 
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<string>('');
   const [summernoteReady, setSummernoteReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -211,7 +212,7 @@ export default function CreatePostPage() {
         dialogsInBody: true,
         callbacks: {
           onChange: (contents: string) => {
-            setFormData((prev) => ({ ...prev, content: contents }));
+            contentRef.current = contents;
           },
           onImageUpload: async (files: File[]) => {
             if (!files || !files.length) return;
@@ -293,7 +294,6 @@ export default function CreatePostPage() {
   const canSubmit =
     formData.title.trim() !== '' &&
     formData.title.length <= 60 &&
-    formData.content.trim() !== '' &&
     !!formData.category_id &&
     !isTitleDuplicate;
 
@@ -311,14 +311,14 @@ export default function CreatePostPage() {
       const content = (res.data as any).content ?? (res.data as any).data?.content;
       
       if (content) {
-        setFormData((prev) => ({ ...prev, content }));
-        
+        contentRef.current = content;
+
         // Update Summernote
         const jq = (window as any).jQuery || (window as any).$;
         if (jq && editorRef.current) {
           jq(editorRef.current).summernote('code', content);
         }
-        
+
         toast.success('تم توليد المحتوى بنجاح');
       } else {
         toast.error('فشل توليد المحتوى');
@@ -333,12 +333,17 @@ export default function CreatePostPage() {
 
   const handleSubmit = async () => {
     if (!canSubmit || isTitleDuplicate) return;
+    const latestContent = contentRef.current || formData.content;
+    if (!latestContent.trim()) {
+      toast.error('يرجى إدخال محتوى المنشور');
+      return;
+    }
     try {
       setIsSubmitting(true);
       await postsService.create({
         country: selectedCountry,
         title: formData.title,
-        content: formData.content,
+        content: latestContent,
         category_id: Number(formData.category_id),
         meta_description: formData.meta_description || undefined,
         keywords: formData.keywords || undefined,

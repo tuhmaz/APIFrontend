@@ -26,6 +26,7 @@ export default function EditPostPage() {
   const countryParam = searchParams.get('country');
 
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<string>('');
   const [summernoteReady, setSummernoteReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -224,10 +225,11 @@ export default function EditPostPage() {
           onInit: () => {
             if (formData.content) {
               el.summernote('code', formData.content);
+              contentRef.current = formData.content;
             }
           },
           onChange: (contents: string) => {
-            setFormData((prev) => ({ ...prev, content: contents }));
+            contentRef.current = contents;
           },
           onImageUpload: async (files: File[]) => {
             if (!files || !files.length) return;
@@ -314,7 +316,6 @@ export default function EditPostPage() {
   const canSubmit =
     (formData.title || '').trim() !== '' &&
     (formData.title || '').length <= 60 &&
-    (formData.content || '').trim() !== '' &&
     !!formData.category_id &&
     !isTitleDuplicate;
 
@@ -329,7 +330,7 @@ export default function EditPostPage() {
       const res = await apiClient.post<{ success: boolean; content: string }>('/ai/generate', { title });
       const content = (res.data as any).content ?? (res.data as any).data?.content;
       if (content) {
-        setFormData((prev) => ({ ...prev, content }));
+        contentRef.current = content;
         const jq = (window as any).jQuery || (window as any).$;
         if (jq && editorRef.current) {
           jq(editorRef.current).summernote('code', content);
@@ -348,12 +349,18 @@ export default function EditPostPage() {
 
   const handleSubmit = async () => {
     if (!canSubmit || isTitleDuplicate) return;
+    // Read latest content from Summernote via ref (not from React state)
+    const latestContent = contentRef.current || formData.content;
+    if (!latestContent.trim()) {
+      toast.error('يرجى إدخال محتوى المنشور');
+      return;
+    }
     try {
       setIsSubmitting(true);
       await postsService.update(id, {
         country: selectedCountry,
         title: formData.title,
-        content: formData.content,
+        content: latestContent,
         category_id: Number(formData.category_id),
         meta_description: formData.meta_description || undefined,
         keywords: formData.keywords || undefined,

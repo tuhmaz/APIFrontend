@@ -68,6 +68,7 @@ export default function CreateArticlePage() {
   const [loadingSemesters, setLoadingSemesters] = useState(false);
 
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
+  const contentRef = useRef<string>('');
   const [summernoteReady, setSummernoteReady] = useState(false);
   const [useTitleForMeta, setUseTitleForMeta] = useState(false);
   const [useKeywordsForMeta, setUseKeywordsForMeta] = useState(false);
@@ -88,14 +89,14 @@ export default function CreateArticlePage() {
       const content = (res.data as any).content ?? (res.data as any).data?.content;
       
       if (content) {
-        setFormData((prev) => ({ ...prev, content }));
-        
+        contentRef.current = content;
+
         // Update Summernote
         const jq = (window as any).jQuery || (window as any).$;
         if (jq && editorRef.current) {
           jq(editorRef.current).summernote('code', content);
         }
-        
+
         toast.success('تم توليد المحتوى بنجاح');
       } else {
         toast.error('فشل توليد المحتوى');
@@ -372,7 +373,7 @@ export default function CreateArticlePage() {
         dialogsInBody: true,
         callbacks: {
           onChange: (contents: string) => {
-            setFormData((prev: ArticleFormData) => ({ ...prev, content: contents }));
+            contentRef.current = contents;
           },
           onImageUpload: async (files: File[]) => {
             if (!files || !files.length) return;
@@ -471,7 +472,6 @@ export default function CreateArticlePage() {
   const canSubmit =
     formData.title.trim() !== '' &&
     formData.title.length <= 60 &&
-    (formData.content || '').trim() !== '' &&
     !!formData.class_id &&
     !!formData.subject_id &&
     !!formData.semester_id &&
@@ -480,6 +480,11 @@ export default function CreateArticlePage() {
 
   const handleSubmit = async () => {
     if (!canSubmit || isTitleDuplicate) return;
+    const latestContent = contentRef.current || formData.content;
+    if (!latestContent.trim()) {
+      toast.error('يرجى إدخال محتوى المقال');
+      return;
+    }
     try {
       setIsSubmitting(true);
       const computedMeta =
@@ -489,9 +494,9 @@ export default function CreateArticlePage() {
             ? (formData.keywords || '')
             : (formData.meta_description && formData.meta_description.trim())
               ? formData.meta_description!.trim()
-              : generateMetaFromContent(formData.content || '', formData.title, formData.keywords);
+              : generateMetaFromContent(latestContent, formData.title, formData.keywords);
       const safeMeta = clampMeta(computedMeta || '');
-      await articlesService.create({ ...formData, meta_description: safeMeta || undefined });
+      await articlesService.create({ ...formData, content: latestContent, meta_description: safeMeta || undefined });
       toast.success('تم إنشاء المقال بنجاح');
       router.push('/dashboard/articles');
     } catch (e) {

@@ -21,7 +21,7 @@ function resolveSiteUrl(): string {
   }
 }
 
-export const revalidate = FEED_REVALIDATE_SECONDS;
+export const revalidate = 3600;
 
 export async function GET(): Promise<Response> {
   const siteUrl = resolveSiteUrl();

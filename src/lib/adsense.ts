@@ -22,8 +22,10 @@ const isSlotVisible = (slot: HTMLElement): boolean => {
   const style = window.getComputedStyle(slot);
   if (style.display === 'none' || style.visibility === 'hidden') return false;
 
-  const rect = slot.getBoundingClientRect();
-  return rect.width > 0 && rect.height > 0;
+  // Don't check bounding rect dimensions - the <ins> element is empty
+  // (0 height) before AdSense fills it, so a dimension check would
+  // prevent initialization entirely.
+  return true;
 };
 
 export function decodeAdSnippet(rawCode: string): string {

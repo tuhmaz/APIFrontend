@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import { Cairo } from 'next/font/google';
 import './globals.css';
 import ToastProvider from '@/components/ui/ToastProvider';
@@ -158,21 +157,19 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {normalizedAdsenseClient && (
-          <meta name="google-adsense-account" content={normalizedAdsenseClient} />
+          <>
+            <meta name="google-adsense-account" content={normalizedAdsenseClient} />
+            <script
+              async
+              crossOrigin="anonymous"
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(normalizedAdsenseClient)}`}
+            />
+          </>
         )}
       </head>
       <body
         className={`${cairo.className} ${cairo.variable} antialiased min-h-screen`}
       >
-        {normalizedAdsenseClient && (
-          <Script
-            id="google-adsense-script"
-            async
-            strategy="afterInteractive"
-            crossOrigin="anonymous"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(normalizedAdsenseClient)}`}
-          />
-        )}
         <FrontSettingsProvider settings={settings}>
           <GoogleAnalytics gaId={gaId} />
           <ThemeInitializer />

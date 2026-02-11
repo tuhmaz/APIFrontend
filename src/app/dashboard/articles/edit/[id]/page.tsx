@@ -49,6 +49,7 @@ export default function EditArticlePage() {
   const [loadingSemesters, setLoadingSemesters] = useState(false);
 
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<string>('');
   const [summernoteReady, setSummernoteReady] = useState(false);
   const [useTitleForMeta, setUseTitleForMeta] = useState(false);
   const [useKeywordsForMeta, setUseKeywordsForMeta] = useState(false);
@@ -112,8 +113,6 @@ export default function EditArticlePage() {
         // Fetch data from service
         // Response structure: { data: Article, classes: [], subjects: [], semesters: [], country: ... }
         const res: any = await articlesService.getEditData(id, selectedCountry);
-
-        console.log('API Response:', res);
 
         // The response might be wrapped in 'data' from BaseResource
         const articleData = res.data?.data || res.data;
@@ -409,10 +408,11 @@ export default function EditArticlePage() {
 
           if (formData.content) {
               $editor.summernote('code', formData.content);
+              contentRef.current = formData.content;
           }
         },
         onChange: (contents: string) => {
-          setFormData((prev: ArticleFormData) => ({ ...prev, content: contents }));
+          contentRef.current = contents;
         },
         onImageUpload: async (files: File[]) => {
           if (!files || !files.length) return;
@@ -479,7 +479,7 @@ export default function EditArticlePage() {
       const res = await apiClient.post<{ success: boolean; content: string }>('/ai/generate', { title });
       const content = (res.data as any).content ?? (res.data as any).data?.content;
       if (content) {
-        setFormData((prev) => ({ ...prev, content }));
+        contentRef.current = content;
         const jq = (window as any).jQuery || (window as any).$;
         if (jq && editorRef.current) {
           jq(editorRef.current).summernote('code', content);
@@ -498,10 +498,15 @@ export default function EditArticlePage() {
 
   const handleSubmit = async () => {
     if (!canSubmit || isTitleDuplicate) return;
+    const latestContent = contentRef.current || formData.content;
+    if (!latestContent.trim()) {
+      toast.error('يرجى إدخال محتوى المقال');
+      return;
+    }
 
     try {
       setIsSubmitting(true);
-      
+
       // Calculate meta description if needed
       const computedMeta =
         useTitleForMeta
@@ -510,9 +515,9 @@ export default function EditArticlePage() {
             ? (formData.keywords || '')
             : (formData.meta_description && formData.meta_description.trim())
               ? formData.meta_description!.trim()
-              : generateMetaFromContent(formData.content || '', formData.title, formData.keywords);
+              : generateMetaFromContent(latestContent, formData.title, formData.keywords);
 
-      await articlesService.update(id, { ...formData, meta_description: computedMeta });
+      await articlesService.update(id, { ...formData, content: latestContent, meta_description: computedMeta });
       
       toast.success('تم تحديث المقال بنجاح');
       router.push('/dashboard/articles');
@@ -540,19 +545,10 @@ export default function EditArticlePage() {
   // class_id, subject_id, semester_id are already set from the loaded article
   const canSubmit =
     formData.title.trim().length > 0 &&
-    formData.title.length <= 60 &&
-    (formData.content || '').trim().length > 0;
+    formData.title.length <= 60;
 
-  // Debug: Log form validation state
-  useEffect(() => {
-    // Form validation logic
-  }, [formData, canSubmit, semesterOptions, subjectOptions]);
-
-  // Debug page state
-  console.log('Page state:', { isAuthorized, isLoading, formData: { class_id: formData.class_id, subject_id: formData.subject_id, semester_id: formData.semester_id } });
 
   if (isAuthorized === null) {
-    console.log('Waiting for authorization...');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -564,12 +560,10 @@ export default function EditArticlePage() {
   }
 
   if (isAuthorized === false) {
-    console.log('Access denied');
     return <AccessDenied />;
   }
 
   if (isLoading) {
-      console.log('Loading article data...');
       return (
           <div className="flex items-center justify-center min-h-screen">
               <div className="text-center">
