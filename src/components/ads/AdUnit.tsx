@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { initializeAdSlots, normalizeAdSnippet } from '@/lib/adsense';
 
 interface AdUnitProps {
   adCode: string;
@@ -14,28 +15,32 @@ interface AdUnitProps {
  */
 export default function AdUnit({ adCode, className = '' }: AdUnitProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const renderedRef = useRef(false);
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const normalizedMarkup = useMemo(() => normalizeAdSnippet(adCode || ''), [adCode]);
 
   useEffect(() => {
-    // Prevent double rendering in strict mode
-    if (renderedRef.current || !adCode || !containerRef.current) return;
-    renderedRef.current = true;
+    const container = containerRef.current;
+    if (!container) return;
 
-    // Simply set the HTML content - let AdSense handle it naturally
-    containerRef.current.innerHTML = adCode;
-    containerRef.current.setAttribute('data-ad-rendered', 'true');
+    cleanupRef.current?.();
+    cleanupRef.current = null;
+    container.innerHTML = '';
+    container.setAttribute('data-ad-rendered', 'false');
 
-    // Try to push to adsbygoogle if available (for dynamically loaded ads)
-    try {
-      if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
-        (window as any).adsbygoogle.push({});
-      }
-    } catch {
-      // Ignore - AdSense will handle it
-    }
-  }, [adCode]);
+    if (!normalizedMarkup) return;
 
-  if (!adCode) return null;
+    container.innerHTML = normalizedMarkup;
+    container.setAttribute('data-ad-rendered', 'true');
+    cleanupRef.current = initializeAdSlots(container);
+
+    return () => {
+      cleanupRef.current?.();
+      cleanupRef.current = null;
+      container.innerHTML = '';
+    };
+  }, [normalizedMarkup]);
+
+  if (!normalizedMarkup) return null;
 
   return (
     <div

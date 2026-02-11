@@ -12,6 +12,7 @@ import Image from '@/components/common/AppImage';
 import Badge from '@/components/ui/Badge';
 import DOMPurify from 'isomorphic-dompurify';
 import PostSeoContentBlock from './PostSeoContentBlock';
+import AdUnit from '@/components/ads/AdUnit';
 
 interface PostViewProps {
   post: any;
@@ -443,16 +444,14 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                   <div className="mb-12 relative overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 p-4">
                     <div className="text-xs text-gray-400 mb-3 text-center font-medium">إعلان</div>
                     {adSettings.googleAdsDesktop && (
-                      <div
-                        className="hidden md:block"
-                        dangerouslySetInnerHTML={{ __html: adSettings.googleAdsDesktop }}
-                      />
+                      <div className="hidden md:block">
+                        <AdUnit adCode={adSettings.googleAdsDesktop} />
+                      </div>
                     )}
                     {adSettings.googleAdsMobile && (
-                      <div
-                        className="block md:hidden"
-                        dangerouslySetInnerHTML={{ __html: adSettings.googleAdsMobile }}
-                      />
+                      <div className="block md:hidden">
+                        <AdUnit adCode={adSettings.googleAdsMobile} />
+                      </div>
                     )}
                   </div>
                 )}
@@ -478,16 +477,14 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                   <div className="my-12 relative overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 p-4">
                     <div className="text-xs text-gray-400 mb-3 text-center font-medium">إعلان</div>
                     {adSettings.googleAdsDesktop2 && (
-                      <div
-                        className="hidden md:block"
-                        dangerouslySetInnerHTML={{ __html: adSettings.googleAdsDesktop2 }}
-                      />
+                      <div className="hidden md:block">
+                        <AdUnit adCode={adSettings.googleAdsDesktop2} />
+                      </div>
                     )}
                     {adSettings.googleAdsMobile2 && (
-                      <div
-                        className="block md:hidden"
-                        dangerouslySetInnerHTML={{ __html: adSettings.googleAdsMobile2 }}
-                      />
+                      <div className="block md:hidden">
+                        <AdUnit adCode={adSettings.googleAdsMobile2} />
+                      </div>
                     )}
                   </div>
                 )}

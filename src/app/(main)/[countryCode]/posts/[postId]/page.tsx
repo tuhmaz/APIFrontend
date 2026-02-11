@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation';
-import { API_ENDPOINTS } from '@/lib/api/config';
+import { API_ENDPOINTS, COUNTRIES } from '@/lib/api/config';
 import { apiClient } from '@/lib/api/client';
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
+import { cache } from 'react';
 import PostView from '@/components/posts/PostView';
 import { safeJsonLd } from '@/lib/utils';
 import { getFrontSettings } from '@/lib/front-settings';
@@ -10,19 +11,35 @@ import { getFrontSettings } from '@/lib/front-settings';
 // Use ISR with revalidation for better performance
 export const revalidate = 120;
 
-async function getPost(countryCode: string, postId: string) {
+const getPost = cache(async (countryCode: string, postId: string) => {
+  const normalizedCountry = (countryCode || '').toString().trim().toLowerCase();
+  const normalizedPostId = (postId || '').toString().trim();
+
+  // Guard invalid route params to avoid noisy backend 404 logs.
+  if (!COUNTRIES.some((country) => country.code === normalizedCountry)) {
+    return null;
+  }
+
+  if (!/^\d+$/.test(normalizedPostId)) {
+    return null;
+  }
+
   try {
     const response = await apiClient.get<any>(
-      API_ENDPOINTS.POSTS.SHOW(postId),
-      { database: countryCode },
+      API_ENDPOINTS.POSTS.SHOW(normalizedPostId),
+      { country: normalizedCountry, database: normalizedCountry },
       { next: { revalidate: 120 } } as any
     );
     return response.data.data;
-  } catch (err) {
+  } catch (err: any) {
+    // 404 is expected for unknown posts; page will render notFound().
+    if (err?.status === 404) {
+      return null;
+    }
     console.error('Error fetching post:', err);
     return null;
   }
-}
+});
 
 async function getPublicSettings(): Promise<Record<string, string | null>> {
   return getFrontSettings();

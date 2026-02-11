@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from '@/components/common/AppImage';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   Search, 
   Filter, 
   Calendar, 
@@ -26,6 +26,7 @@ import {
   ChevronsLeft
 } from 'lucide-react';
 import { getStorageUrl } from '@/lib/utils';
+import AdUnit from '@/components/ads/AdUnit';
 
 interface PostsIndexViewProps {
   initialPosts: any[];
@@ -418,16 +419,14 @@ export default function PostsIndexView({
                 <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100 p-4">
                   <div className="text-xs text-gray-400 mb-2 text-center">إعلان</div>
                   {adSettings.googleAdsDesktop && (
-                    <div
-                      className="hidden md:block"
-                      dangerouslySetInnerHTML={{ __html: adSettings.googleAdsDesktop }}
-                    />
+                    <div className="hidden md:block">
+                      <AdUnit adCode={adSettings.googleAdsDesktop} />
+                    </div>
                   )}
                   {adSettings.googleAdsMobile && (
-                    <div
-                      className="block md:hidden"
-                      dangerouslySetInnerHTML={{ __html: adSettings.googleAdsMobile }}
-                    />
+                    <div className="block md:hidden">
+                      <AdUnit adCode={adSettings.googleAdsMobile} />
+                    </div>
                   )}
                 </div>
               </div>
@@ -640,16 +639,14 @@ export default function PostsIndexView({
                     <div className="mt-12 relative overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 p-4">
                       <div className="text-xs text-gray-400 mb-2 text-center">إعلان</div>
                       {adSettings.googleAdsDesktop2 && (
-                        <div
-                          className="hidden md:block"
-                          dangerouslySetInnerHTML={{ __html: adSettings.googleAdsDesktop2 }}
-                        />
+                        <div className="hidden md:block">
+                          <AdUnit adCode={adSettings.googleAdsDesktop2} />
+                        </div>
                       )}
                       {adSettings.googleAdsMobile2 && (
-                        <div
-                          className="block md:hidden"
-                          dangerouslySetInnerHTML={{ __html: adSettings.googleAdsMobile2 }}
-                        />
+                        <div className="block md:hidden">
+                          <AdUnit adCode={adSettings.googleAdsMobile2} />
+                        </div>
                       )}
                     </div>
                   )}

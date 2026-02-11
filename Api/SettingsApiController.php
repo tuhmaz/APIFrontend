@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use App\Http\Resources\BaseResource;
 
 class SettingsApiController extends Controller
@@ -52,13 +53,43 @@ class SettingsApiController extends Controller
                 }
             }
 
+            // Decode Base64-encoded AdSense snippet fields (__B64__ prefix)
+            foreach ($data as $key => $value) {
+                if (is_string($key) && str_starts_with($key, 'google_ads_') && is_string($value)) {
+                    $trimmed = trim($value);
+                    if (str_starts_with($trimmed, '__B64__')) {
+                        $encoded = substr($trimmed, 7);
+                        $decoded = base64_decode($encoded, true);
+                        if ($decoded !== false) {
+                            $data[$key] = $decoded;
+                        }
+                    }
+                }
+            }
+
             // Sanitizing AdSense code
             $adsenseClient = $data['adsense_client'] ?? Setting::get('adsense_client');
 
             foreach ($data as $key => $value) {
-                if (str_starts_with($key, 'google_ads_')) {
-                    if (!empty(trim($value))) {
-                        $data[$key] = AdSnippetSanitizer::sanitize($value, $adsenseClient, $key);
+                if (is_string($key) && str_starts_with($key, 'google_ads_')) {
+                    if (!empty(trim((string) $value))) {
+                        try {
+                            $data[$key] = AdSnippetSanitizer::sanitize($value, $adsenseClient, $key);
+                        } catch (\Throwable $e) {
+                            if ($e instanceof ValidationException) {
+                                throw $e;
+                            }
+
+                            Log::warning('Ad snippet validation failed', [
+                                'setting_key' => $key,
+                                'trimmed_snippet' => Str::limit(trim((string) $value), 120),
+                                'error' => $e->getMessage(),
+                            ]);
+
+                            throw ValidationException::withMessages([
+                                $key => ['Invalid AdSense snippet: ' . $e->getMessage()],
+                            ]);
+                        }
                     } else {
                         $data[$key] = "";
                     }

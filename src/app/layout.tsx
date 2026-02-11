@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { Cairo } from 'next/font/google';
 import './globals.css';
 import ToastProvider from '@/components/ui/ToastProvider';
@@ -22,6 +23,46 @@ const cairo = Cairo({
 async function getPublicSettings(): Promise<Record<string, string | null>> {
   return getFrontSettings();
 }
+
+const ADSENSE_CLIENT_PATTERN = /ca-pub-\d+/;
+
+const extractAdsenseClient = (value: string): string | null => {
+  const match = value.match(ADSENSE_CLIENT_PATTERN);
+  return match?.[0] || null;
+};
+
+const decodePossiblyBase64Snippet = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith('__B64__')) return trimmed;
+
+  const encoded = trimmed.slice(7);
+  if (!encoded) return '';
+
+  try {
+    return Buffer.from(encoded, 'base64').toString('utf8').trim();
+  } catch {
+    return '';
+  }
+};
+
+const resolveAdsenseClient = (settings: Record<string, string | null>): string => {
+  const explicit = (settings.adsense_client || process.env.NEXT_PUBLIC_ADSENSE_CLIENT || '')
+    .toString()
+    .trim();
+  if (ADSENSE_CLIENT_PATTERN.test(explicit)) {
+    return explicit;
+  }
+
+  for (const [key, rawValue] of Object.entries(settings)) {
+    if (!key.startsWith('google_ads_') || typeof rawValue !== 'string') continue;
+    const snippet = decodePossiblyBase64Snippet(rawValue);
+    if (!snippet) continue;
+    const extracted = extractAdsenseClient(snippet);
+    if (extracted) return extracted;
+  }
+
+  return '';
+};
 
 const toPublicStorageUrl = (value?: string | null): string | undefined => {
   const raw = (value || '').toString().trim();
@@ -108,6 +149,7 @@ export default async function RootLayout({
     (settings.google_analytics_id || settings.google_analytics || '').toString().trim() ||
     (process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID || '').toString().trim() ||
     (process.env.NEXT_PUBLIC_GA_ID || '').toString().trim();
+  const normalizedAdsenseClient = resolveAdsenseClient(settings);
 
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
@@ -115,10 +157,22 @@ export default async function RootLayout({
         {/* Preconnect to Google Fonts - Critical for LCP */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {normalizedAdsenseClient && (
+          <meta name="google-adsense-account" content={normalizedAdsenseClient} />
+        )}
       </head>
       <body
         className={`${cairo.className} ${cairo.variable} antialiased min-h-screen`}
       >
+        {normalizedAdsenseClient && (
+          <Script
+            id="google-adsense-script"
+            async
+            strategy="afterInteractive"
+            crossOrigin="anonymous"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(normalizedAdsenseClient)}`}
+          />
+        )}
         <FrontSettingsProvider settings={settings}>
           <GoogleAnalytics gaId={gaId} />
           <ThemeInitializer />

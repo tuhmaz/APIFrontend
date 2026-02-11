@@ -41,12 +41,23 @@ class PostApiController extends Controller
         };
     }
 
+    /**
+     * Accept legacy and current country keys from query/body.
+     */
+    private function resolveCountry(Request $request, string $fallback = '1'): string
+    {
+        return (string) $request->input(
+            'country',
+            $request->input('database', $request->input('country_id', $fallback))
+        );
+    }
+
     /** ------------------------------
      *  GET /api/posts
      * ------------------------------ */
     public function index(Request $request)
     {
-        $country = $request->country ?? '1';
+        $country = $this->resolveCountry($request);
         $db = $this->connection($country);
 
         $posts = Post::on($db)
@@ -69,7 +80,7 @@ class PostApiController extends Controller
      * ------------------------------ */
     public function show(Request $request, $id)
     {
-        $country = $request->country ?? '1';
+        $country = $this->resolveCountry($request);
         $db = $this->connection($country);
 
         $post = Post::on($db)
@@ -267,7 +278,7 @@ class PostApiController extends Controller
      * ------------------------------ */
     public function destroy(Request $request, $id)
     {
-        $country = $request->country ?? '1';
+        $country = $this->resolveCountry($request);
         $db = $this->connection($country);
 
         $post = Post::on($db)->findOrFail($id);
