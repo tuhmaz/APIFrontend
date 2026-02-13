@@ -498,8 +498,9 @@ export default function EditArticlePage() {
 
   const handleSubmit = async () => {
     if (!canSubmit || isTitleDuplicate) return;
-    const latestContent = contentRef.current || formData.content;
-    if (!latestContent.trim()) {
+    const latestContent = contentRef.current ?? formData.content ?? '';
+    const trimmedContent = latestContent.trim();
+    if (!trimmedContent) {
       toast.error('يرجى إدخال محتوى المقال');
       return;
     }
