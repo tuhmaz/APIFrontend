@@ -302,7 +302,7 @@ export default async function DownloadPage({ params, searchParams }: Props) {
           <div className="lg:col-span-4 space-y-6">
 
             {/* Sidebar Ad - إعلان 2 */}
-            <div className="sticky top-6">
+            <div className="sticky top-20">
               <AdSenseDisplay slotType="download_sidebar" />
             </div>
           </div>
