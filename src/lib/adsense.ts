@@ -1,22 +1,21 @@
 const SCRIPT_TAG_PATTERN = /<script\b[^>]*>[\s\S]*?<\/script>/gi;
 
-type AdsByGoogleQueue = Array<Record<string, unknown>>;
-
-type AdSenseWindow = Window & {
-  adsbygoogle?: AdsByGoogleQueue;
-};
-
 /**
  * Get or create the adsbygoogle queue.
- * Google's standard pattern: (window.adsbygoogle = window.adsbygoogle || [])
+ *
+ * CRITICAL: After Google's adsbygoogle.js loads, it replaces window.adsbygoogle
+ * with a custom proxy object that has a push() method but is NOT a native Array.
+ * Using Array.isArray() would return false and cause us to overwrite Google's
+ * object with a plain [], destroying the entire ad processing system.
+ *
+ * We follow Google's exact recommended pattern:
+ *   (window.adsbygoogle = window.adsbygoogle || [])
  */
-const getOrCreateAdsQueue = (): AdsByGoogleQueue | null => {
+const getAdsQueue = (): { push: (obj: Record<string, unknown>) => void } | null => {
   if (typeof window === 'undefined') return null;
 
-  const win = window as AdSenseWindow;
-  if (!Array.isArray(win.adsbygoogle)) {
-    win.adsbygoogle = [];
-  }
+  const win = window as Window & { adsbygoogle?: any };
+  win.adsbygoogle = win.adsbygoogle || [];
   return win.adsbygoogle;
 };
 
@@ -94,7 +93,7 @@ export function initializeAdSlots(
 
   const tryInitialize = (): boolean => {
     attempts += 1;
-    const queue = getOrCreateAdsQueue();
+    const queue = getAdsQueue();
 
     if (!queue) return attempts >= maxAttempts;
 
