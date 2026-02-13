@@ -159,6 +159,10 @@ export default async function RootLayout({
         {normalizedAdsenseClient && (
           <>
             <meta name="google-adsense-account" content={normalizedAdsenseClient} />
+            <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
+            <link rel="preconnect" href="https://googleads.g.doubleclick.net" crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
+            <link rel="dns-prefetch" href="https://googleads.g.doubleclick.net" />
             <script
               async
               crossOrigin="anonymous"

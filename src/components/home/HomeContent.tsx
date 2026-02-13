@@ -19,7 +19,7 @@ import {
   Clock3,
 } from 'lucide-react';
 import QuickSearch from '@/components/search/QuickSearch';
-import AdUnit from '@/components/ads/AdUnit';
+import ResponsiveAd from '@/components/ads/ResponsiveAd';
 import { SchoolClass, Category } from '@/types';
 import { calendarService } from '@/lib/api/services/calendar';
 import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameMonth, isToday, parseISO, startOfMonth, startOfWeek, subMonths } from 'date-fns';
@@ -347,25 +347,13 @@ export default function HomeContent({ country, classes, categories, initialSiteN
                 </div>
               )}
 
-	              {/* Dynamic Ad Area - Stabilized Layout */}
-	              {(adSettings?.googleAdsDesktop || adSettings?.googleAdsMobile) && (
-	                <div className="mt-8 relative overflow-hidden rounded-2xl min-h-[120px] bg-slate-50/50">
-	                  {isMounted && (
-	                    <>
-	                      {/* Desktop Ad */}
-	                      {adSettings.googleAdsDesktop && (
-	                        <div className="hidden md:block">
-	                          <AdUnit adCode={adSettings.googleAdsDesktop} />
-	                        </div>
-	                      )}
-	                      {/* Mobile Ad */}
-	                      {adSettings.googleAdsMobile && (
-	                        <div className="block md:hidden">
-	                          <AdUnit adCode={adSettings.googleAdsMobile} />
-	                        </div>
-	                      )}
-	                    </>
-	                  )}
+	              {/* Dynamic Ad Area */}
+	              {isMounted && (
+	                <div className="mt-8">
+	                  <ResponsiveAd
+	                    desktopCode={adSettings?.googleAdsDesktop || undefined}
+	                    mobileCode={adSettings?.googleAdsMobile || undefined}
+	                  />
 	                </div>
 	              )}
             </div>
@@ -505,27 +493,13 @@ export default function HomeContent({ country, classes, categories, initialSiteN
         </div>
       </div>
 
-      {/* Second Ad Position - Full Width Banner between sections - Stabilized Layout */}
-	      {(adSettings?.googleAdsDesktop2 || adSettings?.googleAdsMobile2) && (
+      {/* Second Ad Position - Full Width Banner between sections */}
+	      {isMounted && (
 	        <div className="container mx-auto px-4 py-8">
-	          <div className="relative overflow-hidden rounded-2xl min-h-[120px] bg-slate-50/50">
-	            {isMounted && (
-	              <>
-	                {/* Desktop Ad */}
-	                {adSettings.googleAdsDesktop2 && (
-	                  <div className="hidden md:block">
-	                    <AdUnit adCode={adSettings.googleAdsDesktop2} />
-	                  </div>
-	                )}
-	                {/* Mobile Ad */}
-	                {adSettings.googleAdsMobile2 && (
-	                  <div className="block md:hidden">
-	                    <AdUnit adCode={adSettings.googleAdsMobile2} />
-	                  </div>
-	                )}
-	              </>
-	            )}
-	          </div>
+	          <ResponsiveAd
+	            desktopCode={adSettings?.googleAdsDesktop2 || undefined}
+	            mobileCode={adSettings?.googleAdsMobile2 || undefined}
+	          />
 	        </div>
       )}
 

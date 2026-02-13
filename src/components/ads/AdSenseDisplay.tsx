@@ -1,6 +1,6 @@
 'use client';
 
-import AdUnit from './AdUnit';
+import ResponsiveAd from './ResponsiveAd';
 import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
 
 interface AdSenseDisplayProps {
@@ -11,8 +11,7 @@ interface AdSenseDisplayProps {
 /**
  * AdSense Display for Download Pages
  * - Resolves mobile/desktop slots from public settings
- * - Uses AdUnit so ad initialization does not rely on injected <script> execution
- * - Includes "إعلان" label for AdSense compliance
+ * - Delegates to ResponsiveAd for proper rendering and compliance
  */
 const AdSenseDisplay = ({ slotType, className = '' }: AdSenseDisplayProps) => {
   const settings = useFrontSettings();
@@ -25,25 +24,12 @@ const AdSenseDisplay = ({ slotType, className = '' }: AdSenseDisplayProps) => {
   const desktopCode = (settings?.[desktopKey] || '').toString();
   const mobileCode = (settings?.[mobileKey] || '').toString();
 
-  if (!desktopCode && !mobileCode) {
-    return null;
-  }
-
   return (
-    <div className={`relative overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 p-4 ${className}`}>
-      <div className="text-xs text-gray-400 mb-2 text-center font-medium">إعلان</div>
-
-      {desktopCode && (
-        <div className="hidden md:block">
-          <AdUnit adCode={desktopCode} className="min-h-[90px]" />
-        </div>
-      )}
-      {mobileCode && (
-        <div className="block md:hidden">
-          <AdUnit adCode={mobileCode} className="min-h-[90px]" />
-        </div>
-      )}
-    </div>
+    <ResponsiveAd
+      desktopCode={desktopCode || undefined}
+      mobileCode={mobileCode || undefined}
+      className={className}
+    />
   );
 };
 

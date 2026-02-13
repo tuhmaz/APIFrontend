@@ -12,7 +12,7 @@ import Image from '@/components/common/AppImage';
 import Badge from '@/components/ui/Badge';
 import DOMPurify from 'isomorphic-dompurify';
 import PostSeoContentBlock from './PostSeoContentBlock';
-import AdUnit from '@/components/ads/AdUnit';
+import ResponsiveAd from '@/components/ads/ResponsiveAd';
 
 interface PostViewProps {
   post: any;
@@ -439,20 +439,13 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                   </div>
                 )}
 
-                {/* Top Ad - Dynamic from Settings (With proper spacing for AdSense) */}
-                {isMounted && (adSettings?.googleAdsDesktop || adSettings?.googleAdsMobile) && (
-                  <div className="mb-12 relative overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 p-4">
-                    <div className="text-xs text-gray-400 mb-3 text-center font-medium">إعلان</div>
-                    {adSettings.googleAdsDesktop && (
-                      <div className="hidden md:block">
-                        <AdUnit adCode={adSettings.googleAdsDesktop} />
-                      </div>
-                    )}
-                    {adSettings.googleAdsMobile && (
-                      <div className="block md:hidden">
-                        <AdUnit adCode={adSettings.googleAdsMobile} />
-                      </div>
-                    )}
+                {/* Top Ad - Dynamic from Settings */}
+                {isMounted && (
+                  <div className="mb-12">
+                    <ResponsiveAd
+                      desktopCode={adSettings?.googleAdsDesktop || undefined}
+                      mobileCode={adSettings?.googleAdsMobile || undefined}
+                    />
                   </div>
                 )}
 
@@ -473,19 +466,12 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                 )}
 
                 {/* Bottom Ad - Dynamic from Settings */}
-                {isMounted && (adSettings?.googleAdsDesktop2 || adSettings?.googleAdsMobile2) && (
-                  <div className="my-12 relative overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 p-4">
-                    <div className="text-xs text-gray-400 mb-3 text-center font-medium">إعلان</div>
-                    {adSettings.googleAdsDesktop2 && (
-                      <div className="hidden md:block">
-                        <AdUnit adCode={adSettings.googleAdsDesktop2} />
-                      </div>
-                    )}
-                    {adSettings.googleAdsMobile2 && (
-                      <div className="block md:hidden">
-                        <AdUnit adCode={adSettings.googleAdsMobile2} />
-                      </div>
-                    )}
+                {isMounted && (
+                  <div className="my-12">
+                    <ResponsiveAd
+                      desktopCode={adSettings?.googleAdsDesktop2 || undefined}
+                      mobileCode={adSettings?.googleAdsMobile2 || undefined}
+                    />
                   </div>
                 )}
 

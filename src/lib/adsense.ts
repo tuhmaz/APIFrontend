@@ -6,25 +6,49 @@ type AdSenseWindow = Window & {
   adsbygoogle?: AdsByGoogleQueue;
 };
 
-const getAdsQueue = (): AdsByGoogleQueue | null => {
+/**
+ * Get or create the adsbygoogle queue.
+ * Google's standard pattern: (window.adsbygoogle = window.adsbygoogle || [])
+ */
+const getOrCreateAdsQueue = (): AdsByGoogleQueue | null => {
   if (typeof window === 'undefined') return null;
-  const queue = (window as AdSenseWindow).adsbygoogle;
-  return Array.isArray(queue) ? queue : null;
+
+  const win = window as AdSenseWindow;
+  if (!Array.isArray(win.adsbygoogle)) {
+    win.adsbygoogle = [];
+  }
+  return win.adsbygoogle;
 };
 
 const isSlotInitialized = (slot: HTMLElement): boolean =>
   slot.dataset.adUnitInitialized === '1' || slot.hasAttribute('data-adsbygoogle-status');
 
+/**
+ * Check if an ad slot is visible to the user.
+ * Uses offsetParent to detect ancestors with display:none — this is the
+ * standard DOM way to determine effective visibility without walking the tree.
+ *
+ * Note: offsetParent is null for position:fixed elements too, but ad slots
+ * should never be position:fixed so this is safe.
+ */
 const isSlotVisible = (slot: HTMLElement): boolean => {
   if (typeof window === 'undefined') return false;
   if (!slot.isConnected) return false;
 
-  const style = window.getComputedStyle(slot);
-  if (style.display === 'none' || style.visibility === 'hidden') return false;
+  // offsetParent is null when the element or any ancestor has display:none.
+  // This correctly handles the mobile/desktop hidden pattern where a parent
+  // div uses Tailwind's "hidden md:block" or "block md:hidden".
+  if (slot.offsetParent === null) {
+    // Exception: the <body> or <html> element has offsetParent === null,
+    // and position:fixed elements do too. Check the slot's own style.
+    const style = window.getComputedStyle(slot);
+    if (style.position === 'fixed') return true;
+    return false;
+  }
 
-  // Don't check bounding rect dimensions - the <ins> element is empty
-  // (0 height) before AdSense fills it, so a dimension check would
-  // prevent initialization entirely.
+  const style = window.getComputedStyle(slot);
+  if (style.visibility === 'hidden') return false;
+
   return true;
 };
 
@@ -61,8 +85,8 @@ export function initializeAdSlots(
   const adSlots = Array.from(container.querySelectorAll<HTMLElement>('ins.adsbygoogle'));
   if (!adSlots.length) return () => {};
 
-  const maxAttempts = options?.maxAttempts ?? 20;
-  const intervalMs = options?.intervalMs ?? 400;
+  const maxAttempts = options?.maxAttempts ?? 25;
+  const intervalMs = options?.intervalMs ?? 300;
 
   let attempts = 0;
   let disposed = false;
@@ -70,7 +94,7 @@ export function initializeAdSlots(
 
   const tryInitialize = (): boolean => {
     attempts += 1;
-    const queue = getAdsQueue();
+    const queue = getOrCreateAdsQueue();
 
     if (!queue) return attempts >= maxAttempts;
 

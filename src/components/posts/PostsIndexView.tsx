@@ -26,7 +26,7 @@ import {
   ChevronsLeft
 } from 'lucide-react';
 import { getStorageUrl } from '@/lib/utils';
-import AdUnit from '@/components/ads/AdUnit';
+import ResponsiveAd from '@/components/ads/ResponsiveAd';
 
 interface PostsIndexViewProps {
   initialPosts: any[];
@@ -413,24 +413,13 @@ export default function PostsIndexView({
               </div>
             </div>
 
-            {/* Dynamic Sidebar Ad - AdSense Compatible */}
-            {(adSettings?.googleAdsDesktop || adSettings?.googleAdsMobile) && (
-              <div className="mt-8">
-                <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100 p-4">
-                  <div className="text-xs text-gray-400 mb-2 text-center">إعلان</div>
-                  {adSettings.googleAdsDesktop && (
-                    <div className="hidden md:block">
-                      <AdUnit adCode={adSettings.googleAdsDesktop} />
-                    </div>
-                  )}
-                  {adSettings.googleAdsMobile && (
-                    <div className="block md:hidden">
-                      <AdUnit adCode={adSettings.googleAdsMobile} />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Dynamic Sidebar Ad */}
+            <div className="mt-8">
+              <ResponsiveAd
+                desktopCode={adSettings?.googleAdsDesktop || undefined}
+                mobileCode={adSettings?.googleAdsMobile || undefined}
+              />
+            </div>
           </aside>
 
           {/* Main Content */}
@@ -634,22 +623,13 @@ export default function PostsIndexView({
                     ))}
                   </div>
 
-                  {/* Dynamic Bottom Ad - After Posts Grid (AdSense Compatible) */}
-                  {(adSettings?.googleAdsDesktop2 || adSettings?.googleAdsMobile2) && (
-                    <div className="mt-12 relative overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 p-4">
-                      <div className="text-xs text-gray-400 mb-2 text-center">إعلان</div>
-                      {adSettings.googleAdsDesktop2 && (
-                        <div className="hidden md:block">
-                          <AdUnit adCode={adSettings.googleAdsDesktop2} />
-                        </div>
-                      )}
-                      {adSettings.googleAdsMobile2 && (
-                        <div className="block md:hidden">
-                          <AdUnit adCode={adSettings.googleAdsMobile2} />
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {/* Dynamic Bottom Ad - After Posts Grid */}
+                  <div className="mt-12">
+                    <ResponsiveAd
+                      desktopCode={adSettings?.googleAdsDesktop2 || undefined}
+                      mobileCode={adSettings?.googleAdsMobile2 || undefined}
+                    />
+                  </div>
                 </>
               ) : (
                 <div className="text-center py-32 bg-white rounded-3xl border border-dashed border-[#e2e8f0]">
