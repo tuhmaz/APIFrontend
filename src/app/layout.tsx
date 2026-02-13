@@ -156,19 +156,9 @@ export default async function RootLayout({
         {/* Preconnect to Google Fonts - Critical for LCP */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* AdSense meta tag (ownership verification only - no ads triggered) */}
         {normalizedAdsenseClient && (
-          <>
-            <meta name="google-adsense-account" content={normalizedAdsenseClient} />
-            <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
-            <link rel="preconnect" href="https://googleads.g.doubleclick.net" crossOrigin="anonymous" />
-            <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
-            <link rel="dns-prefetch" href="https://googleads.g.doubleclick.net" />
-            <script
-              async
-              crossOrigin="anonymous"
-              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(normalizedAdsenseClient)}`}
-            />
-          </>
+          <meta name="google-adsense-account" content={normalizedAdsenseClient} />
         )}
       </head>
       <body
