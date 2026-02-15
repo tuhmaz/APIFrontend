@@ -6,10 +6,12 @@ import Link from 'next/link';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import DataTable from '@/components/ui/DataTable';
 import Select from '@/components/ui/Select';
+import { ConfirmModal } from '@/components/ui/Modal';
 import type { Post } from '@/types';
 import { postsService, COUNTRIES } from '@/lib/api/services';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
+import { toast } from 'react-hot-toast';
 
 const mockPosts: Post[] = [];
 
@@ -26,6 +28,8 @@ export default function PostsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<'1' | '2' | '3' | '4'>(COUNTRIES[0].id as '1' | '2' | '3' | '4');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
@@ -139,7 +143,8 @@ export default function PostsPage() {
             <Edit className="w-4 h-4 text-muted-foreground" />
           </Link>
           <button
-            onClick={() => handleDelete(item.id)}
+            onClick={() => handleDeleteClick(item.id)}
+            disabled={deleteLoading && confirmDeleteId === item.id}
             className="p-1.5 rounded-lg hover:bg-error/10 transition-colors"
             title="حذف"
           >
@@ -150,10 +155,8 @@ export default function PostsPage() {
     },
   ];
 
-  const handleDelete = (id: number) => {
-    if (confirm('هل أنت متأكد من حذف هذا المنشور؟')) {
-      setPosts(posts.filter(p => p.id !== id));
-    }
+  const handleDeleteClick = (id: number) => {
+    setConfirmDeleteId(id);
   };
 
   const filteredPosts = posts.filter(p => {
@@ -201,6 +204,51 @@ export default function PostsPage() {
       setLoading(false);
     }
   }, [selectedCountry, pagination.per_page, searchQuery]);
+
+  const confirmDelete = useCallback(async () => {
+    if (!confirmDeleteId || deleteLoading) return;
+
+    const deletedId = confirmDeleteId;
+
+    try {
+      setDeleteLoading(true);
+      await postsService.delete(deletedId, selectedCountry);
+
+      const shouldGoPrevPage = posts.length === 1 && pagination.current_page > 1;
+      const targetPage = shouldGoPrevPage ? pagination.current_page - 1 : pagination.current_page;
+
+      try {
+        await fetchPosts(targetPage);
+      } catch {
+        setPosts((prev) => prev.filter((post) => post.id !== deletedId));
+        setPagination((prev) => ({
+          ...prev,
+          total: Math.max(0, prev.total - 1),
+        }));
+      }
+
+      toast.success('تم حذف المنشور بنجاح');
+      setConfirmDeleteId(null);
+    } catch (error: any) {
+      const errors = error?.errors && typeof error.errors === 'object' ? error.errors : null;
+      const firstErrorValue = errors ? Object.values(errors)[0] : null;
+      const firstErrorText =
+        Array.isArray(firstErrorValue)
+          ? (typeof firstErrorValue[0] === 'string' ? firstErrorValue[0] : null)
+          : (typeof firstErrorValue === 'string' ? firstErrorValue : null);
+
+      toast.error(firstErrorText || error?.message || 'فشل حذف المنشور');
+    } finally {
+      setDeleteLoading(false);
+    }
+  }, [
+    confirmDeleteId,
+    deleteLoading,
+    selectedCountry,
+    posts.length,
+    pagination.current_page,
+    fetchPosts,
+  ]);
 
   useEffect(() => {
     fetchPosts(1);
@@ -338,7 +386,18 @@ export default function PostsPage() {
         </CardContent>
       </Card>
 
-      {/* Modal - Removed as it is unused */}
+      <ConfirmModal
+        isOpen={confirmDeleteId !== null}
+        onClose={() => !deleteLoading && setConfirmDeleteId(null)}
+        onConfirm={confirmDelete}
+        title="تأكيد الحذف"
+        message="سيتم حذف المنشور نهائيا ولا يمكن التراجع عن هذا الإجراء."
+        confirmText="حذف"
+        cancelText="إلغاء"
+        variant="danger"
+        isLoading={deleteLoading}
+      />
     </div>
   );
 }
+
