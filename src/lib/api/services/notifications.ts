@@ -29,10 +29,15 @@ export interface NotificationResponse {
 
 export const notificationService = {
   /**
-   * Get latest notifications for the dropdown
+   * Get latest notifications for the dropdown.
+   * Uses suppressAuthRedirect so background polling doesn't kill the session on transient 401s.
    */
   getLatest: async (limit = 10): Promise<NotificationResponse> => {
-    const response = await apiClient.get<NotificationResponse>(API_ENDPOINTS.NOTIFICATIONS.LATEST, { limit });
+    const response = await apiClient.get<NotificationResponse>(
+      API_ENDPOINTS.NOTIFICATIONS.LATEST,
+      { limit },
+      { suppressAuthRedirect: true }
+    );
     return response.data;
   },
 

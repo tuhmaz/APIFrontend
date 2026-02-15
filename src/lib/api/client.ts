@@ -4,6 +4,8 @@ import { universalFetch, shouldUseInternalFetch } from './internal-fetch';
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
   timeout?: number;
+  /** When true, a 401 response will NOT clear the session or redirect to login. Use for background/polling requests. */
+  suppressAuthRedirect?: boolean;
 }
 
 interface ApiResponse<T> {
@@ -192,6 +194,11 @@ class ApiClient {
 
     if (typeof window === 'undefined') return;
 
+    // Clear Zustand auth store to prevent stale isAuthenticated state
+    try {
+      localStorage.removeItem('auth-storage');
+    } catch {}
+
     const currentPath = window.location.pathname;
     if (!currentPath.startsWith('/dashboard')) return;
 
@@ -203,7 +210,7 @@ class ApiClient {
     endpoint: string,
     options: RequestOptions = {}
   ): Promise<ApiResponse<T>> {
-    const { params, timeout, ...fetchOptions } = options;
+    const { params, timeout, suppressAuthRedirect, ...fetchOptions } = options;
     const url = this.buildUrl(endpoint, params);
     const isGetRequest = !fetchOptions.method || fetchOptions.method === 'GET';
 
@@ -301,7 +308,7 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (response.status === 401 && !suppressAuthRedirect) {
           this.handleUnauthorizedRedirect();
         }
         const err = new Error((data && data.message) || 'حدث خطأ ما');
