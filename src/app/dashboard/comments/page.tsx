@@ -27,8 +27,8 @@ export default function CommentsPage() {
   // Default to Jordan (jo)
   const [selectedDatabase, setSelectedDatabase] = useState<string>('jo');
   
+  const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({
-    current_page: 1,
     last_page: 1,
     per_page: 20,
     total: 0,
@@ -55,22 +55,18 @@ export default function CommentsPage() {
         per_page: 20,
         q: searchQuery || undefined,
       });
-      
-      // Handle Laravel Pagination Response
-      if (response.data) {
-        setComments(response.data);
-      } else {
-        setComments([]);
-      }
 
-      if (response.meta) {
-        setPagination({
-            current_page: response.meta.current_page,
-            last_page: response.meta.last_page,
-            per_page: response.meta.per_page,
-            total: response.meta.total
-        });
-      }
+      // Laravel returns either { data: [], meta: {} } or { current_page, data: [], last_page, total, ... }
+      const list: Comment[] = response?.data || [];
+      const meta = response?.meta ?? (response as any);
+
+      setComments(list);
+      setCurrentPage(meta?.current_page ?? page);
+      setPagination({
+        last_page: meta?.last_page ?? 1,
+        per_page: meta?.per_page ?? 20,
+        total: meta?.total ?? list.length,
+      });
     } catch (err: any) {
       console.error('Failed to fetch comments:', err);
       setComments([]);
@@ -80,6 +76,7 @@ export default function CommentsPage() {
   }, [selectedDatabase, searchQuery]);
 
   useEffect(() => {
+    setCurrentPage(1);
     fetchComments(1);
   }, [fetchComments]);
 
@@ -113,7 +110,7 @@ export default function CommentsPage() {
         variant: 'success',
       });
       setAlertOpen(true);
-      fetchComments(pagination.current_page);
+      fetchComments(currentPage);
     } catch {
       setAlertConfig({
         title: 'خطأ',
@@ -296,15 +293,16 @@ export default function CommentsPage() {
         )}
         
         {/* Pagination */}
-        {comments.length > 0 && pagination.last_page > 1 && (
-            <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+        {comments.length > 0 && (
+            <div className="p-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-3">
                 <p className="text-sm text-gray-500">
                     عرض {comments.length} من أصل {pagination.total} تعليق
+                    {pagination.last_page > 1 && ` — صفحة ${currentPage} من ${pagination.last_page}`}
                 </p>
                 <Pagination
-                  currentPage={pagination.current_page}
+                  currentPage={currentPage}
                   totalPages={pagination.last_page}
-                  onPageChange={fetchComments}
+                  onPageChange={(page) => { setCurrentPage(page); fetchComments(page); }}
                 />
             </div>
         )}
