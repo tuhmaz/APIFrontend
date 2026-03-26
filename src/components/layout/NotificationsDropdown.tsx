@@ -125,7 +125,7 @@ export default function NotificationsDropdown() {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-80 md:w-96 bg-card border border-border rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-top-2 overflow-hidden ring-1 ring-black/5">
+        <div className="absolute left-1/2 -translate-x-1/2 md:translate-x-0 md:left-0 mt-2 w-[calc(100vw-1rem)] max-w-sm md:w-96 bg-card border border-border rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-top-2 overflow-hidden ring-1 ring-black/5">
           <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/10">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-foreground">الإشعارات</h3>

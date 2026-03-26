@@ -23,6 +23,7 @@ import { useThemeStore, useAuthStore, useSettingsStore } from '@/store/useStore'
 import { cn, getStorageUrl } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 import CountrySelector from './CountrySelector';
+import NotificationsDropdown from '@/components/layout/NotificationsDropdown';
 import { authService } from '@/lib/api/services/auth';
 import { useUserRefresh } from '@/hooks/useUserRefresh';
 
@@ -219,7 +220,11 @@ export default function Navbar({ initialSettings }: { initialSettings?: InitialS
 
           <div className="hidden md:flex items-center gap-2">
             <CountrySelector />
-            
+
+            {mounted && isAuthenticated && (
+              <NotificationsDropdown />
+            )}
+
             <button
               onClick={toggleDarkMode}
               className="p-2 rounded-xl hover:bg-muted/60 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
@@ -341,7 +346,7 @@ export default function Navbar({ initialSettings }: { initialSettings?: InitialS
             )}
           </div>
 
-          <div className="flex md:hidden items-center gap-2">
+          <div className="flex md:hidden items-center gap-1.5">
             <button
               onClick={toggleDarkMode}
               className="p-2 rounded-xl hover:bg-muted/60 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
@@ -353,6 +358,11 @@ export default function Navbar({ initialSettings }: { initialSettings?: InitialS
                 <Moon className="w-5 h-5 text-secondary" />
               )}
             </button>
+
+            {mounted && isAuthenticated && (
+              <NotificationsDropdown />
+            )}
+
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 rounded-xl hover:bg-muted/60 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
