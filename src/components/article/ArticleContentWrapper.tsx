@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react';
 import ArticleAds from '@/components/ads/ArticleAds';
+import ContentGate from '@/components/common/ContentGate';
 
 interface ArticleContentWrapperProps {
   children: ReactNode;
@@ -16,6 +17,7 @@ interface ArticleContentWrapperProps {
 /**
  * Article Content Wrapper
  * - Shows one ad at the top of article content
+ * - Gates content behind login + profile completion
  */
 export default function ArticleContentWrapper({
   children,
@@ -30,8 +32,10 @@ export default function ArticleContentWrapper({
         <ArticleAds adSettings={adSettings} position="top" />
       )}
 
-      {/* Article Content */}
-      {children}
+      {/* Article Content — gated behind login & profile completion */}
+      <ContentGate>
+        {children}
+      </ContentGate>
     </>
   );
 }

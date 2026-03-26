@@ -13,6 +13,7 @@ import Badge from '@/components/ui/Badge';
 import DOMPurify from 'isomorphic-dompurify';
 import PostSeoContentBlock from './PostSeoContentBlock';
 import ResponsiveAd from '@/components/ads/ResponsiveAd';
+import ContentGate from '@/components/common/ContentGate';
 
 interface PostViewProps {
   post: any;
@@ -403,6 +404,7 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                 </div>
               )}
               
+              <ContentGate>
               <div className="p-8 md:p-10">
                 {/* Table of Contents - Modern Design */}
                 {toc.length > 0 && (
@@ -572,6 +574,7 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                   </div>
                 </div>
               </div>
+              </ContentGate>
             </article>
 
             {/* Related Posts Section - Premium Design */}

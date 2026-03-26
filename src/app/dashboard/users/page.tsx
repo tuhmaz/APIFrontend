@@ -76,6 +76,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
   const [availablePermissions, setAvailablePermissions] = useState<Permission[]>([]);
   
@@ -149,33 +150,32 @@ export default function UsersPage() {
   const [messageData, setMessageData] = useState({ subject: '', body: '' });
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // Fetch Data
-  const fetchData = useCallback(async (page = 1) => {
+  // Fetch static data (roles & permissions) once on mount
+  useEffect(() => {
+    if (!isAuthorized) return;
+    rolesService.getAll().then(setAvailableRoles).catch(() => {});
+    rolesService.getPermissions().then(setAvailablePermissions).catch(() => {});
+  }, [isAuthorized]);
+
+  // Fetch users — separated from roles fetch for speed
+  const fetchUsers = useCallback(async (page = 1, search = searchQuery, role = roleFilter, status = statusFilter) => {
     try {
       setLoading(true);
       const params: any = { page };
-      if (searchQuery.trim()) params.search = searchQuery.trim();
-      if (roleFilter) params.role = roleFilter;
-      if (statusFilter) params.status = statusFilter;
+      if (search.trim()) params.search = search.trim();
+      if (role) params.role = role;
+      if (status) params.status = status;
 
-      const [usersResponse, rolesData] = await Promise.all([
-        usersService.getAll(params),
-        rolesService.getAll().catch(() => []),
-      ]);
-      
+      const usersResponse = await usersService.getAll(params);
+
       const responseData = (usersResponse as any);
-      const list = Array.isArray(responseData.data) ? responseData.data : responseData;
-      const meta = responseData.meta || {};
+      const list = Array.isArray(responseData.data) ? responseData.data : (Array.isArray(responseData) ? responseData : []);
+      const meta = responseData.meta ?? responseData;
 
       setUsers(list as User[]);
       setCurrentPage(meta.current_page || 1);
       setLastPage(meta.last_page || 1);
-
-      setAvailableRoles(rolesData);
-      
-      // Fetch permissions lazily or now
-      rolesService.getPermissions().then(setAvailablePermissions).catch(() => {});
-      
+      setTotalCount(meta.total || list.length);
     } catch (e) {
       console.error(e);
     } finally {
@@ -183,19 +183,35 @@ export default function UsersPage() {
     }
   }, [searchQuery, roleFilter, statusFilter]);
 
+  // Initial load
   useEffect(() => {
     if (!isAuthorized) return;
-    const timeout = setTimeout(() => fetchData(1), 300);
+    fetchUsers(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthorized]);
+
+  // Search: debounced 300ms
+  useEffect(() => {
+    if (!isAuthorized) return;
+    const timeout = setTimeout(() => fetchUsers(1), 300);
     return () => clearTimeout(timeout);
-  }, [fetchData, isAuthorized]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+  // Dropdowns: immediate
+  useEffect(() => {
+    if (!isAuthorized) return;
+    fetchUsers(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleFilter, statusFilter]);
 
   const handlePageChange = (page: number) => {
-    fetchData(page);
+    fetchUsers(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Derived Stats
-  const totalUsers = users.length;
+  // Derived Stats — totalUsers comes from API meta.total (all pages), others from current page
+  const totalUsers = totalCount;
   const verifiedUsers = users.filter((u) => !!u.email_verified_at).length;
   // Use is_online if available, otherwise check last_activity (within 5 mins)
   const isUserOnline = (user: User) => {
@@ -249,7 +265,7 @@ export default function UsersPage() {
         phone: '', job_title: '', gender: '', country: '', bio: '', status: 'active',
         social_links: { facebook: '', twitter: '', linkedin: '', instagram: '', github: '' }
       });
-      fetchData(); // Refresh list
+      fetchUsers(currentPage); // Refresh list
     } catch (e: any) {
       setActionError(e.message || 'فشل إنشاء المستخدم');
     } finally {
@@ -299,7 +315,7 @@ export default function UsersPage() {
       }
 
       setEditModal({ open: false, user: null });
-      fetchData(); // Refresh to get latest data including images
+      fetchUsers(currentPage); // Refresh to get latest data including images
     } catch (e: any) {
       setActionError(e.message || 'فشل تحديث البيانات');
     } finally {
@@ -313,7 +329,7 @@ export default function UsersPage() {
       setActionLoading(true);
       await usersService.delete(deleteModal.user.id);
       setDeleteModal({ open: false, user: null });
-      fetchData();
+      fetchUsers(currentPage);
     } catch (e: any) {
       setActionError(e.message || 'فشل حذف المستخدم');
     } finally {
@@ -327,7 +343,7 @@ export default function UsersPage() {
       await usersService.bulkDelete(selectedIds);
       setBulkDeleteModal(false);
       setSelectedIds([]);
-      fetchData();
+      fetchUsers(currentPage);
     } catch (e: any) {
       setActionError(e.message || 'فشل حذف المستخدمين المحددين');
     } finally {
@@ -342,7 +358,7 @@ export default function UsersPage() {
       // Since backend might not support bulk update yet
       await Promise.all(selectedIds.map(id => usersService.update(id, { status })));
       setSelectedIds([]);
-      fetchData();
+      fetchUsers(currentPage);
     } catch (e: any) {
       console.error(e);
       // setActionError(e.message || 'فشل تحديث الحالة'); // Might not want to show error if some succeeded
@@ -501,7 +517,7 @@ export default function UsersPage() {
               <Shield className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">حسابات موثقة</p>
+              <p className="text-sm text-muted-foreground">حسابات موثقة (الصفحة الحالية)</p>
               <p className="text-2xl font-bold">{verifiedUsers}</p>
             </div>
           </CardContent>
@@ -512,7 +528,7 @@ export default function UsersPage() {
               <Activity className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">المتصلين الآن</p>
+              <p className="text-sm text-muted-foreground">المتصلين الآن (الصفحة الحالية)</p>
               <p className="text-2xl font-bold">{onlineUsers}</p>
             </div>
           </CardContent>
