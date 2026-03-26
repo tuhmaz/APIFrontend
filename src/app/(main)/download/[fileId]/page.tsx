@@ -270,11 +270,6 @@ export default async function DownloadPage({ params, searchParams }: Props) {
           {/* Main Content (8 cols) */}
           <div className="lg:col-span-8">
 
-            {/* Top Ad - إعلان 1 */}
-            <div className="mb-8">
-              <AdSenseDisplay slotType="download_top" />
-            </div>
-
             {/* Download Timer Card */}
             <DownloadTimer
               fileId={fileId}
@@ -295,6 +290,11 @@ export default async function DownloadPage({ params, searchParams }: Props) {
               subjectName={item?.subject?.name}
               backLink={backLink}
             />
+
+            {/* Bottom Ad - إعلان بعد المحتوى */}
+            <div className="mt-8">
+              <AdSenseDisplay slotType="download_top" />
+            </div>
 
           </div>
 

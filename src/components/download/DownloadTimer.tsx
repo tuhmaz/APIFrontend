@@ -26,8 +26,6 @@ export default function DownloadTimer({
   viewsCount = 0,
   downloadCount = 0,
 }: Props) {
-  const [timeLeft, setTimeLeft] = useState(25);
-  const [canDownload, setCanDownload] = useState(false);
   const [views, setViews] = useState<number>(viewsCount);
   const [downloads, setDownloads] = useState<number>(downloadCount);
   const hasTrackedRef = useRef(false);
@@ -37,25 +35,7 @@ export default function DownloadTimer({
     setDownloads(downloadCount || 0);
   }, [viewsCount, downloadCount]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      // Pause timer if page is not visible
-      if (document.hidden) {
-        return;
-      }
-
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setCanDownload(true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
+  // Timer removed - download button is immediately available
 
   useEffect(() => {
     if (hasTrackedRef.current) return;
@@ -82,8 +62,6 @@ export default function DownloadTimer({
     trackView();
   }, [fileId, countryCode]);
 
-  const progress = ((25 - timeLeft) / 25) * 100;
-
   const downloadUrl = customDownloadUrl || `/api/download/${fileId}?countryCode=${countryCode}`;
 
   return (
@@ -107,42 +85,24 @@ export default function DownloadTimer({
         </span>
       </div>
 
-      {!canDownload ? (
-        <div className="mb-8">
-          <div className="mb-4">
-            <span className="text-3xl font-bold text-primary">{timeLeft}</span>
-            <span className="text-gray-500 mr-2">ثانية</span>
-          </div>
-          <p className="text-gray-600 mb-6">جاري تجهيز رابط التحميل، يرجى البقاء في الصفحة حتى اكتمال العد...</p>
-          
-          {/* Progress Bar */}
-          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-primary transition-all duration-1000 ease-linear"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      ) : (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div>
           <div className="mb-6 flex items-center justify-center gap-2 text-green-600 font-medium">
             <CheckCircle size={20} />
             <span>رابط التحميل جاهز!</span>
           </div>
-          
-          <a 
+
+          <a
             href={downloadUrl}
             className="inline-flex items-center justify-center gap-3 bg-primary text-white text-lg font-bold px-8 py-4 rounded-xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 w-full sm:w-auto transform hover:-translate-y-1"
           >
             <Download size={24} />
             تحميل الملف الآن
           </a>
-          
+
           <p className="mt-4 text-sm text-gray-500">
             شكراً لاستخدامكم منصة التعليم. لا تنسى مشاركة الرابط مع أصدقائك!
           </p>
         </div>
-      )}
 
       {/* Safety Note */}
       <div className="mt-8 pt-6 border-t border-gray-100 flex items-start gap-3 text-right">

@@ -220,10 +220,9 @@ export default function DownloadPageContent({
           </div>
 
           <div className="border-b border-gray-100 pb-4">
-            <h3 className="font-semibold text-gray-900 mb-2">لماذا يوجد عداد قبل التحميل؟</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">كيف أحصل على الملف؟</h3>
             <p className="text-sm text-gray-600">
-              العداد يساعدنا في تقديم خدمة مجانية ومستدامة من خلال عرض إعلانات بسيطة
-              تدعم استمرار الموقع وتوفير المزيد من المحتوى التعليمي.
+              اضغط على زر "تحميل الملف الآن" للحصول على الملف مباشرةً. التحميل مجاني وفوري بدون أي خطوات إضافية.
             </p>
           </div>
 
