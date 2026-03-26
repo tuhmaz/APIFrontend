@@ -14,6 +14,7 @@ import { postsService, categoriesService, COUNTRIES, apiClient } from '@/lib/api
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
 import { extractError } from '@/lib/utils';
+import { triggerSitemapRegen, countryIdToDatabase } from '@/lib/triggerSitemap';
 
 export default function CreatePostPage() {
   const { isAuthorized } = usePermissionGuard('manage posts');
@@ -352,6 +353,7 @@ export default function CreatePostPage() {
         image: formData.image,
         attachments: formData.attachments,
       });
+      triggerSitemapRegen(countryIdToDatabase(selectedCountry));
       toast.success('تم إنشاء المنشور بنجاح');
       router.push('/dashboard/posts');
     } catch (e) {

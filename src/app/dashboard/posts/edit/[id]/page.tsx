@@ -14,6 +14,7 @@ import Select from '@/components/ui/Select';
 import { postsService, categoriesService, COUNTRIES, apiClient } from '@/lib/api/services';
 import type { FileItem } from '@/types';
 import { getStorageUrl, extractError } from '@/lib/utils';
+import { triggerSitemapRegen, countryIdToDatabase } from '@/lib/triggerSitemap';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
 
@@ -369,6 +370,7 @@ export default function EditPostPage() {
         image: formData.image,
         attachments: formData.attachments,
       });
+      triggerSitemapRegen(countryIdToDatabase(selectedCountry));
       toast.success('تم تعديل المنشور بنجاح');
       router.push('/dashboard/posts');
     } catch (e) {

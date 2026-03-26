@@ -31,6 +31,7 @@ import type { SchoolClass, Subject, Semester } from '@/types';
 import type { ArticleFormData } from '@/lib/api/services/articles';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import { extractError } from '@/lib/utils';
+import { triggerSitemapRegen, countryIdToDatabase } from '@/lib/triggerSitemap';
 import AccessDenied from '@/components/common/AccessDenied';
 
 const META_MAX_LENGTH = 120;
@@ -498,6 +499,7 @@ export default function CreateArticlePage() {
               : generateMetaFromContent(latestContent, formData.title, formData.keywords);
       const safeMeta = clampMeta(computedMeta || '');
       await articlesService.create({ ...formData, content: latestContent, meta_description: safeMeta || undefined });
+      triggerSitemapRegen(countryIdToDatabase(selectedCountry));
       toast.success('تم إنشاء المقال بنجاح');
       router.push('/dashboard/articles');
     } catch (e) {
