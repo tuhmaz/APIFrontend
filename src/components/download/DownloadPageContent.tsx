@@ -222,7 +222,7 @@ export default function DownloadPageContent({
           <div className="border-b border-gray-100 pb-4">
             <h3 className="font-semibold text-gray-900 mb-2">كيف أحصل على الملف؟</h3>
             <p className="text-sm text-gray-600">
-              اضغط على زر "تحميل الملف الآن" للحصول على الملف مباشرةً. التحميل مجاني وفوري بدون أي خطوات إضافية.
+              اضغط على زر &quot;تحميل الملف الآن&quot; للحصول على الملف مباشرةً. التحميل مجاني وفوري بدون أي خطوات إضافية.
             </p>
           </div>
 
