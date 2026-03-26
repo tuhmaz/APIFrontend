@@ -22,10 +22,9 @@ import type { Notification } from '@/types';
 import { notificationsService } from '@/lib/api/services';
 import toast from 'react-hot-toast';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
-import AccessDenied from '@/components/common/AccessDenied';
 
 export default function NotificationsPage() {
-  const { isAuthorized } = usePermissionGuard('manage notifications');
+  const { user } = usePermissionGuard('manage notifications');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
@@ -49,17 +48,9 @@ export default function NotificationsPage() {
   };
 
   useEffect(() => {
-    if (!isAuthorized) return;
+    if (!user) return;
     fetchNotifications();
-  }, [isAuthorized]);
-
-  if (isAuthorized === null) {
-    return null;
-  }
-
-  if (isAuthorized === false) {
-    return <AccessDenied />;
-  }
+  }, [user]);
 
   const getNotificationContent = (notification: Notification) => {
     const { type, data } = notification;

@@ -342,7 +342,7 @@ export default function CreatePostPage() {
     }
     try {
       setIsSubmitting(true);
-      await postsService.create({
+      const createdPost = await postsService.create({
         country: selectedCountry,
         title: formData.title,
         content: latestContent,
@@ -355,11 +355,12 @@ export default function CreatePostPage() {
         attachments: formData.attachments,
       });
       triggerSitemapRegen(countryIdToDatabase(selectedCountry));
+      const countryCode = countryIdToDatabase(selectedCountry);
       notificationService.send({
         type: 'post_created',
         title: `منشور جديد: ${formData.title}`,
         message: `تم نشر منشور جديد بعنوان "${formData.title}"`,
-        action_url: '/dashboard/posts',
+        action_url: `/${countryCode}/posts/${(createdPost as any)?.id || ''}`,
       });
       toast.success('تم إنشاء المنشور بنجاح');
       router.push('/dashboard/posts');

@@ -499,13 +499,14 @@ export default function CreateArticlePage() {
               ? formData.meta_description!.trim()
               : generateMetaFromContent(latestContent, formData.title, formData.keywords);
       const safeMeta = clampMeta(computedMeta || '');
-      await articlesService.create({ ...formData, content: latestContent, meta_description: safeMeta || undefined });
+      const createdArticle = await articlesService.create({ ...formData, content: latestContent, meta_description: safeMeta || undefined });
       triggerSitemapRegen(countryIdToDatabase(selectedCountry));
+      const countryCode = countryIdToDatabase(selectedCountry);
       notificationService.send({
         type: 'article_created',
         title: `مقال جديد: ${formData.title}`,
         message: `تم إنشاء مقال جديد بعنوان "${formData.title}"`,
-        action_url: '/dashboard/articles',
+        action_url: `/${countryCode}/lesson/articles/${(createdArticle as any)?.id || ''}`,
       });
       toast.success('تم إنشاء المقال بنجاح');
       router.push('/dashboard/articles');

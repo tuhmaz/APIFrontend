@@ -376,7 +376,7 @@ export default function EditPostPage() {
         type: 'post_updated',
         title: `تحديث منشور: ${formData.title}`,
         message: `تم تحديث المنشور "${formData.title}"`,
-        action_url: '/dashboard/posts',
+        action_url: `/${countryIdToDatabase(selectedCountry)}/posts/${id}`,
       });
       toast.success('تم تعديل المنشور بنجاح');
       router.push('/dashboard/posts');

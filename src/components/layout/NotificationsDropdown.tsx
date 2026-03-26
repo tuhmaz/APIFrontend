@@ -88,18 +88,26 @@ export default function NotificationsDropdown() {
     const url = notification.data.action_url || notification.data.url;
 
     if (url) {
-      // Fix article links to point to public interface instead of dashboard
+      // Already a public URL (e.g. /jo/lesson/articles/123 or /jo/posts/123)
+      if (!url.includes('/dashboard/')) {
+        return url;
+      }
+      // Legacy: fix old dashboard article links to public interface
       if (url.includes('/dashboard/articles/')) {
         return url.replace('/dashboard/articles/', '/jo/lesson/articles/');
       }
+      // Legacy: fix old dashboard post links to public interface
+      if (url.includes('/dashboard/posts/')) {
+        return url.replace('/dashboard/posts/', '/jo/posts/');
+      }
       return url;
     }
-    
-    // Fallbacks
+
+    // Fallbacks (no action_url stored)
     if (notification.type.includes('Message')) return '/dashboard/messages/inbox';
-    if (notification.type.includes('Article')) return '/dashboard/articles';
-    if (notification.type.includes('Post')) return '/dashboard/posts';
-    
+    if (notification.type.includes('Article')) return '/dashboard/notifications';
+    if (notification.type.includes('Post')) return '/dashboard/notifications';
+
     return '/dashboard/notifications';
   };
 

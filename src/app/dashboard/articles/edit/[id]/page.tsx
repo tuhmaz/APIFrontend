@@ -526,7 +526,7 @@ export default function EditArticlePage() {
         type: 'article_updated',
         title: `تحديث مقال: ${formData.title}`,
         message: `تم تحديث المقال "${formData.title}"`,
-        action_url: '/dashboard/articles',
+        action_url: `/${countryIdToDatabase(selectedCountry)}/lesson/articles/${id}`,
       });
       toast.success('تم تحديث المقال بنجاح');
       router.push('/dashboard/articles');
