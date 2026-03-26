@@ -15,6 +15,7 @@ import { postsService, categoriesService, COUNTRIES, apiClient } from '@/lib/api
 import type { FileItem } from '@/types';
 import { getStorageUrl, extractError } from '@/lib/utils';
 import { triggerSitemapRegen, countryIdToDatabase } from '@/lib/triggerSitemap';
+import { notificationService } from '@/lib/api/services/notifications';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
 
@@ -371,6 +372,12 @@ export default function EditPostPage() {
         attachments: formData.attachments,
       });
       triggerSitemapRegen(countryIdToDatabase(selectedCountry));
+      notificationService.send({
+        type: 'post_updated',
+        title: `تحديث منشور: ${formData.title}`,
+        message: `تم تحديث المنشور "${formData.title}"`,
+        action_url: '/dashboard/posts',
+      });
       toast.success('تم تعديل المنشور بنجاح');
       router.push('/dashboard/posts');
     } catch (e) {

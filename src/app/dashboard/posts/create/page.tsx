@@ -15,6 +15,7 @@ import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
 import { extractError } from '@/lib/utils';
 import { triggerSitemapRegen, countryIdToDatabase } from '@/lib/triggerSitemap';
+import { notificationService } from '@/lib/api/services/notifications';
 
 export default function CreatePostPage() {
   const { isAuthorized } = usePermissionGuard('manage posts');
@@ -354,6 +355,12 @@ export default function CreatePostPage() {
         attachments: formData.attachments,
       });
       triggerSitemapRegen(countryIdToDatabase(selectedCountry));
+      notificationService.send({
+        type: 'post_created',
+        title: `منشور جديد: ${formData.title}`,
+        message: `تم نشر منشور جديد بعنوان "${formData.title}"`,
+        action_url: '/dashboard/posts',
+      });
       toast.success('تم إنشاء المنشور بنجاح');
       router.push('/dashboard/posts');
     } catch (e) {

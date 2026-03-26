@@ -32,6 +32,7 @@ import type { ArticleFormData } from '@/lib/api/services/articles';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import { extractError } from '@/lib/utils';
 import { triggerSitemapRegen, countryIdToDatabase } from '@/lib/triggerSitemap';
+import { notificationService } from '@/lib/api/services/notifications';
 import AccessDenied from '@/components/common/AccessDenied';
 
 const META_MAX_LENGTH = 120;
@@ -500,6 +501,12 @@ export default function CreateArticlePage() {
       const safeMeta = clampMeta(computedMeta || '');
       await articlesService.create({ ...formData, content: latestContent, meta_description: safeMeta || undefined });
       triggerSitemapRegen(countryIdToDatabase(selectedCountry));
+      notificationService.send({
+        type: 'article_created',
+        title: `مقال جديد: ${formData.title}`,
+        message: `تم إنشاء مقال جديد بعنوان "${formData.title}"`,
+        action_url: '/dashboard/articles',
+      });
       toast.success('تم إنشاء المقال بنجاح');
       router.push('/dashboard/articles');
     } catch (e) {

@@ -256,6 +256,7 @@ export const API_ENDPOINTS = {
   NOTIFICATIONS: {
     LIST: '/dashboard/notifications',
     LATEST: '/dashboard/notifications/latest',
+    SEND: '/dashboard/notifications',
     MARK_READ: (id: number | string) => `/dashboard/notifications/${id}/read`,
     MARK_ALL_READ: '/dashboard/notifications/read-all',
     BULK_ACTION: '/dashboard/notifications/bulk',

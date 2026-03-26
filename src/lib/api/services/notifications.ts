@@ -27,7 +27,36 @@ export interface NotificationResponse {
   success: boolean;
 }
 
+/**
+ * Dispatches a browser custom event to trigger an immediate notifications refresh
+ * in the NotificationsDropdown (which listens for this event).
+ * Fire-and-forget — safe to call anywhere.
+ */
+export function emitNotificationsRefresh(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('notifications:refresh'));
+  }
+}
+
 export const notificationService = {
+  /**
+   * Create a new notification (called after article/post creation).
+   * Fire-and-forget — never throws, never blocks.
+   */
+  send: async (data: {
+    type: string;
+    title: string;
+    message: string;
+    action_url?: string;
+  }): Promise<void> => {
+    try {
+      await apiClient.post(API_ENDPOINTS.NOTIFICATIONS.SEND, data);
+      emitNotificationsRefresh();
+    } catch {
+      // Silent fail — notification creation is non-critical
+    }
+  },
+
   /**
    * Get latest notifications for the dropdown.
    * Uses suppressAuthRedirect so background polling doesn't kill the session on transient 401s.

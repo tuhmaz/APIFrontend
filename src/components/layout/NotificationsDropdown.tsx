@@ -32,7 +32,12 @@ export default function NotificationsDropdown() {
     fetchNotifications();
     // Poll every 30 seconds for new notifications
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+    // Immediate refresh when content is created (dispatched by notificationService.send)
+    window.addEventListener('notifications:refresh', fetchNotifications);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('notifications:refresh', fetchNotifications);
+    };
   }, []);
 
   // Close dropdown when clicking outside

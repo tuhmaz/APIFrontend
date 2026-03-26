@@ -31,6 +31,7 @@ import type { ArticleFormData } from '@/lib/api/services/articles';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import { extractError } from '@/lib/utils';
 import { triggerSitemapRegen, countryIdToDatabase } from '@/lib/triggerSitemap';
+import { notificationService } from '@/lib/api/services/notifications';
 import AccessDenied from '@/components/common/AccessDenied';
 
 export default function EditArticlePage() {
@@ -521,6 +522,12 @@ export default function EditArticlePage() {
 
       await articlesService.update(id, { ...formData, content: latestContent, meta_description: computedMeta });
       triggerSitemapRegen(countryIdToDatabase(selectedCountry));
+      notificationService.send({
+        type: 'article_updated',
+        title: `تحديث مقال: ${formData.title}`,
+        message: `تم تحديث المقال "${formData.title}"`,
+        action_url: '/dashboard/articles',
+      });
       toast.success('تم تحديث المقال بنجاح');
       router.push('/dashboard/articles');
     } catch (e) {
