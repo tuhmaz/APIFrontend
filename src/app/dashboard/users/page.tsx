@@ -152,6 +152,7 @@ export default function UsersPage() {
 
   const [messageData, setMessageData] = useState({ subject: '', body: '' });
   const [actionError, setActionError] = useState<string | null>(null);
+  const [bulkAction, setBulkAction] = useState('');
 
   // Fetch static data (roles & permissions) once on mount
   useEffect(() => {
@@ -346,6 +347,7 @@ export default function UsersPage() {
       await usersService.bulkDelete(selectedIds);
       setBulkDeleteModal(false);
       setSelectedIds([]);
+      setBulkAction('');
       fetchUsers(currentPage);
     } catch (e: any) {
       setActionError(e.message || 'فشل حذف المستخدمين المحددين');
@@ -454,23 +456,46 @@ export default function UsersPage() {
         </div>
         <div className="flex gap-2">
           {selectedIds.length > 0 && (
-            <div className="flex gap-2 animate-in fade-in slide-in-from-right-5 duration-300">
+            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-5 duration-300">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                تم تحديد {selectedIds.length}
+              </span>
               <select
                 name="bulk_action"
                 id="bulk-action"
+                value={bulkAction}
                 className="bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                onChange={(e) => {
-                   if (e.target.value === 'delete') setBulkDeleteModal(true);
-                   else if (e.target.value) handleBulkStatus(e.target.value);
-                   e.target.value = ''; // Reset
+                onChange={(e) => setBulkAction(e.target.value)}
+              >
+                <option value="">اختر إجراء...</option>
+                <option value="active">تفعيل</option>
+                <option value="inactive">تعطيل</option>
+                <option value="pending">قيد الانتظار</option>
+                <option value="banned">حظر</option>
+                <option value="delete">حذف</option>
+              </select>
+              <Button
+                size="sm"
+                variant={bulkAction === 'delete' || bulkAction === 'banned' ? 'danger' : 'primary'}
+                disabled={!bulkAction || actionLoading}
+                onClick={() => {
+                  if (!bulkAction) return;
+                  if (bulkAction === 'delete') {
+                    setBulkDeleteModal(true);
+                  } else {
+                    handleBulkStatus(bulkAction);
+                    setBulkAction('');
+                  }
                 }}
               >
-                <option value="">إجراءات جماعية ({selectedIds.length})</option>
-                <option value="active">تفعيل المحدد</option>
-                <option value="inactive">تعطيل المحدد</option>
-                <option value="banned">حظر المحدد</option>
-                <option value="delete">حذف المحدد</option>
-              </select>
+                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تطبيق'}
+              </Button>
+              <button
+                onClick={() => { setSelectedIds([]); setBulkAction(''); }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                إلغاء
+              </button>
             </div>
           )}
           
