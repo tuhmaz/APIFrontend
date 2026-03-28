@@ -1484,7 +1484,7 @@ export default function UsersPage() {
               إلغاء
             </Button>
             <Button
-              variant="destructive"
+              variant="danger"
               disabled={actionLoading}
               onClick={async () => {
                 if (!blockIpModal.ip) return;
