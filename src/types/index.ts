@@ -48,6 +48,7 @@ export interface User {
   last_seen?: string;
   status?: string; // Account status (active, inactive, etc.)
   is_online?: boolean; // Computed online status
+  last_login_ip?: string;
   created_at?: string;
   updated_at?: string;
 }

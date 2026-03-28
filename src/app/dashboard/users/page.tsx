@@ -20,7 +20,9 @@ import {
   Linkedin,
   Instagram,
   Github,
-  Key
+  Key,
+  Ban,
+  Globe
 } from 'lucide-react';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -30,7 +32,7 @@ import Badge from '@/components/ui/Badge';
 import Pagination from '@/components/ui/Pagination';
 import { cn, getStorageUrl } from '@/lib/utils';
 import type { User, Role, Permission } from '@/types';
-import { usersService, messagesService, rolesService } from '@/lib/api/services';
+import { usersService, messagesService, rolesService, securityService } from '@/lib/api/services';
 import { COUNTRIES } from '@/lib/api/config';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
@@ -100,6 +102,7 @@ export default function UsersPage() {
   const [messageModal, setMessageModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
   const [bulkDeleteModal, setBulkDeleteModal] = useState(false);
+  const [blockIpModal, setBlockIpModal] = useState<{ open: boolean; ip: string | null; userId: number | null }>({ open: false, ip: null, userId: null });
 
   // Forms Data
   const [createData, setCreateData] = useState({
@@ -1398,6 +1401,22 @@ export default function UsersPage() {
                  <p className="text-xs text-muted-foreground">المسمى الوظيفي</p>
                  <p className="text-sm font-medium">{viewModal.user.job_title || '-'}</p>
               </div>
+              <div className="col-span-2">
+                <p className="text-xs text-muted-foreground mb-1">عنوان IP (آخر تسجيل دخول)</p>
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm font-mono font-medium">{viewModal.user.last_login_ip || 'غير متاح'}</span>
+                  {viewModal.user.last_login_ip && (
+                    <button
+                      onClick={() => setBlockIpModal({ open: true, ip: viewModal.user!.last_login_ip!, userId: viewModal.user!.id })}
+                      className="mr-auto flex items-center gap-1 text-xs text-destructive hover:text-destructive/80 transition-colors border border-destructive/30 hover:border-destructive/60 rounded px-2 py-0.5"
+                    >
+                      <Ban className="w-3 h-3" />
+                      حظر IP
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {viewModal.user.bio && (
@@ -1442,6 +1461,49 @@ export default function UsersPage() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* BLOCK IP MODAL */}
+      <Modal
+        isOpen={blockIpModal.open}
+        onClose={() => setBlockIpModal({ open: false, ip: null, userId: null })}
+        title="حظر عنوان IP"
+        size="sm"
+      >
+        <div className="space-y-4 mt-2">
+          <p className="text-sm text-muted-foreground text-right">
+            هل أنت متأكد من حظر عنوان IP التالي؟ لن يتمكن أي مستخدم يتصل من هذا العنوان من الوصول إلى الموقع.
+          </p>
+          <div className="flex items-center gap-2 bg-muted/40 rounded-lg p-3">
+            <Globe className="w-4 h-4 text-muted-foreground" />
+            <span className="font-mono text-sm font-medium">{blockIpModal.ip}</span>
+          </div>
+          {actionError && <p className="text-xs text-destructive text-right">{actionError}</p>}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => { setBlockIpModal({ open: false, ip: null, userId: null }); setActionError(null); }}>
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={actionLoading}
+              onClick={async () => {
+                if (!blockIpModal.ip) return;
+                setActionLoading(true);
+                setActionError(null);
+                try {
+                  await securityService.blockIp({ ip: blockIpModal.ip, reason: 'محظور من لوحة إدارة المستخدمين' });
+                  setBlockIpModal({ open: false, ip: null, userId: null });
+                } catch (e: any) {
+                  setActionError(e?.message || 'حدث خطأ أثناء حظر IP');
+                } finally {
+                  setActionLoading(false);
+                }
+              }}
+            >
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Ban className="w-4 h-4 ml-1" />تأكيد الحظر</>}
+            </Button>
+          </div>
+        </div>
       </Modal>
 
       {/* MESSAGE MODAL */}
