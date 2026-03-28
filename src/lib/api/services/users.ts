@@ -168,6 +168,17 @@ export const usersService = {
   },
 
   /**
+   * Bulk update status for multiple users
+   */
+  async bulkUpdateStatus(ids: number[], status: string): Promise<{ updated: number }> {
+    const response = await apiClient.post<{ data: { updated: number } }>(
+      API_ENDPOINTS.USERS.UPDATE_STATUS,
+      { ids, status }
+    );
+    return (response.data as any).data ?? (response.data as any);
+  },
+
+  /**
    * Bulk delete users
    */
   async bulkDelete(userIds: number[]): Promise<{ deleted: number; errors: string[] }> {

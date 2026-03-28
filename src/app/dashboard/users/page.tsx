@@ -359,14 +359,12 @@ export default function UsersPage() {
   const handleBulkStatus = async (status: string) => {
     try {
       setActionLoading(true);
-      // Loop through selected IDs and update status one by one
-      // Since backend might not support bulk update yet
-      await Promise.all(selectedIds.map(id => usersService.update(id, { status })));
+      await usersService.bulkUpdateStatus(selectedIds, status);
       setSelectedIds([]);
+      setBulkAction('');
       fetchUsers(currentPage);
     } catch (e: any) {
-      console.error(e);
-      // setActionError(e.message || 'فشل تحديث الحالة'); // Might not want to show error if some succeeded
+      setActionError(e?.message || 'فشل تحديث حالة المستخدمين');
     } finally {
       setActionLoading(false);
     }
