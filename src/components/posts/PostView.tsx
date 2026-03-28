@@ -404,6 +404,16 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                 </div>
               )}
               
+              {/* Top Ad - outside ContentGate for AdSense compliance (always visible) */}
+              {isMounted && (
+                <div className="px-8 md:px-10 mb-6">
+                  <ResponsiveAd
+                    desktopCode={adSettings?.googleAdsDesktop || undefined}
+                    mobileCode={adSettings?.googleAdsMobile || undefined}
+                  />
+                </div>
+              )}
+
               <ContentGate>
               <div className="p-8 md:p-10">
                 {/* Table of Contents - Modern Design */}
@@ -419,7 +429,7 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                       <ul className="space-y-3">
                         {toc.map((item, idx) => (
                           <li key={idx} style={{ paddingRight: (item.level - 2) * 20 }} className="group">
-                            <a 
+                            <a
                               href={`#${item.id}`}
                               className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/80 transition-all duration-300 group-hover:shadow-sm border border-transparent group-hover:border-blue-100"
                               onClick={(e) => {
@@ -441,16 +451,6 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                   </div>
                 )}
 
-                {/* Top Ad - Dynamic from Settings */}
-                {isMounted && (
-                  <div className="mb-12">
-                    <ResponsiveAd
-                      desktopCode={adSettings?.googleAdsDesktop || undefined}
-                      mobileCode={adSettings?.googleAdsMobile || undefined}
-                    />
-                  </div>
-                )}
-
                 {/* Content - Enhanced Styling with better spacing */}
                 <div
                   className="prose prose-xl max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-headings:leading-tight prose-headings:mb-6 prose-headings:mt-8 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:text-lg prose-p:mb-6 prose-a:text-blue-600 prose-a:font-medium prose-a:no-underline hover:prose-a:underline prose-li:text-gray-700 prose-li:text-lg prose-li:mb-2 prose-blockquote:border-l-blue-600 prose-blockquote:bg-blue-50/50 prose-blockquote:rounded-r-xl prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:my-8 prose-img:rounded-2xl prose-img:shadow-xl prose-img:border prose-img:border-gray-200 prose-img:my-8 prose-table:shadow-sm prose-table:rounded-xl prose-th:bg-gray-50 prose-th:text-gray-900 prose-th:font-semibold prose-th:p-4 prose-td:p-4 min-h-[400px]"
@@ -465,16 +465,6 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                     author={post.author?.name}
                     keywords={Array.isArray(post.keywords) ? post.keywords : undefined}
                   />
-                )}
-
-                {/* Bottom Ad - Dynamic from Settings */}
-                {isMounted && (
-                  <div className="my-12">
-                    <ResponsiveAd
-                      desktopCode={adSettings?.googleAdsDesktop2 || undefined}
-                      mobileCode={adSettings?.googleAdsMobile2 || undefined}
-                    />
-                  </div>
                 )}
 
                 {/* Attachments - Premium Design */}
@@ -575,6 +565,16 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                 </div>
               </div>
               </ContentGate>
+
+              {/* Bottom Ad - outside ContentGate for AdSense compliance (always visible) */}
+              {isMounted && (
+                <div className="px-8 md:px-10 mt-6">
+                  <ResponsiveAd
+                    desktopCode={adSettings?.googleAdsDesktop2 || undefined}
+                    mobileCode={adSettings?.googleAdsMobile2 || undefined}
+                  />
+                </div>
+              )}
             </article>
 
             {/* Related Posts Section - Premium Design */}
