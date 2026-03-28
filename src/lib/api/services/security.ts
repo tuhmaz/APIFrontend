@@ -163,7 +163,11 @@ export const securityService = {
    * Manual Block IP
    */
   async blockIp(data: { ip: string; reason?: string; days?: number }) {
-    const response = await apiClient.post<{ data: { message: string } }>(API_ENDPOINTS.SECURITY.BLOCK_IP, data);
+    const response = await apiClient.post<{ data: { message: string } }>(API_ENDPOINTS.SECURITY.BLOCK_IP, {
+      ip_address: data.ip,
+      reason: data.reason,
+      days: data.days,
+    });
     return response.data.data;
   },
 
