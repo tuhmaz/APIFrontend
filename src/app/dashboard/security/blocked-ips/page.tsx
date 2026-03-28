@@ -142,54 +142,42 @@ export default function BlockedIpsPage() {
 
   const columns = [
     {
-      title: 'IP العنوان',
-      key: 'ip',
+      title: 'عنوان IP',
+      key: 'ip_address',
       render: (_: any, item: any) => (
         <div className="flex items-center gap-2 font-mono" dir="ltr">
           <ShieldX className="w-4 h-4 text-red-500" />
-          <span className="font-semibold">{item.ip}</span>
+          <span className="font-semibold">{item.ip_address}</span>
         </div>
       ),
     },
     {
       title: 'سبب الحظر',
-      key: 'reason',
+      key: 'description',
       render: (_: any, item: any) => (
         <div className="max-w-xs truncate text-gray-700">
-            {item.reason || 'غير محدد'}
+          {item.description || 'غير محدد'}
         </div>
       ),
     },
     {
       title: 'بواسطة',
-      key: 'banned_by',
+      key: 'user',
       render: (_: any, item: any) => (
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <User className="w-3 h-3" />
-          <span>{item.blocked_by?.name || item.banned_by || 'النظام'}</span>
+          <span>{item.user?.name || 'النظام'}</span>
         </div>
       ),
     },
     {
-      title: 'الحالة / الانتهاء',
-      key: 'banned_until',
-      render: (_: any, item: any) => {
-        const isExpired = item.banned_until && new Date(item.banned_until) <= new Date();
-        return (
-          <div className="flex flex-col gap-1">
-            <Badge variant={isExpired ? 'default' : 'error'}>
-              {isExpired ? 'منتهي' : 'نشط'}
-            </Badge>
-            {item.banned_until ? (
-              <span className="text-xs text-gray-500" dir="ltr">
-                {new Date(item.banned_until).toLocaleDateString('en-GB')}
-              </span>
-            ) : (
-              <span className="text-xs text-gray-500">مؤبد</span>
-            )}
-          </div>
-        );
-      },
+      title: 'الحالة',
+      key: 'is_resolved',
+      render: (_: any, item: any) => (
+        <Badge variant={item.is_resolved ? 'default' : 'error'}>
+          {item.is_resolved ? 'منتهي' : 'نشط'}
+        </Badge>
+      ),
     },
     {
       title: 'تاريخ الحظر',
@@ -360,7 +348,7 @@ export default function BlockedIpsPage() {
           <div className="flex items-center gap-3 text-amber-600 bg-amber-50 p-3 rounded-lg">
             <AlertOctagon className="w-6 h-6 flex-shrink-0" />
             <p className="text-sm">
-              هل أنت متأكد من رغبتك في فك الحظر عن العنوان <span className="font-mono font-bold" dir="ltr">{unblockModal.ip?.ip}</span>؟
+              هل أنت متأكد من رغبتك في فك الحظر عن العنوان <span className="font-mono font-bold" dir="ltr">{unblockModal.ip?.ip_address}</span>؟
               سيتمكن هذا العنوان من الوصول للنظام مرة أخرى.
             </p>
           </div>

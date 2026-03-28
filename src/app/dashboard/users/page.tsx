@@ -580,6 +580,7 @@ export default function UsersPage() {
                 <option value="pending">قيد الانتظار</option>
                 <option value="inactive">غير نشط</option>
                 <option value="banned">محظور</option>
+                <option value="ip_blocked">IP محظور</option>
               </select>
             </div>
           </div>
@@ -684,9 +685,14 @@ export default function UsersPage() {
                           </div>
                         </td>
                         <td className="py-4 px-4">
-                          <Badge variant={statusColors[getStatus(user)] || 'default'} size="sm" dot>
-                            {statusLabels[getStatus(user)] || getStatus(user)}
-                          </Badge>
+                          <div className="flex flex-col gap-1">
+                            <Badge variant={statusColors[getStatus(user)] || 'default'} size="sm" dot>
+                              {statusLabels[getStatus(user)] || getStatus(user)}
+                            </Badge>
+                            {(user as any).ip_is_blocked && (
+                              <Badge variant="error" size="xs">IP محظور</Badge>
+                            )}
+                          </div>
                         </td>
                         <td className="py-4 px-4 text-sm">
                           {user.country ? (
@@ -808,6 +814,9 @@ export default function UsersPage() {
                          </span>
                          <span>•</span>
                          <span>{user.country ? (COUNTRIES.find(c => c.id === user.country || c.code === user.country)?.name || user.country) : 'غير محدد'}</span>
+                         {(user as any).ip_is_blocked && (
+                           <><span>•</span><Badge variant="error" size="xs">IP محظور</Badge></>
+                         )}
                       </div>
 
                       {user.social_links && (
