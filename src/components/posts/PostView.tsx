@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, Calendar, User, Eye, Share2, Tag, Layers, Folder, Home, FileText, Paperclip, Download, MessageSquare, Edit3, Info } from 'lucide-react';
+import { ArrowRight, Calendar, User, Eye, Share2, Tag, Layers, Folder, Home, FileText, Paperclip, Download, MessageSquare, Edit3, Info, X, LogIn, UserPlus, Lock } from 'lucide-react';
 import { formatFileSize, getStorageUrl } from '@/lib/utils';
 import { useEffect, useState, useMemo } from 'react';
+import { usePathname } from 'next/navigation';
 import { postsService } from '@/lib/api/services';
 import { commentsService } from '@/lib/api/services/comments';
 import { useAuthStore } from '@/store/useStore';
@@ -30,6 +31,8 @@ interface PostViewProps {
 export default function PostView({ post, countryCode, adSettings }: PostViewProps) {
   const { user, isAuthenticated } = useAuthStore();
   const [isMounted, setIsMounted] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const pathname = usePathname();
   const [comments, setComments] = useState<any[]>([]);
   const [commentBody, setCommentBody] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -239,6 +242,7 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
   };
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50 font-sans">
 
       {/* Modern Header Section - Professional Clean Design */}
@@ -504,13 +508,23 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                             </div>
                           </div>
                           
-                          <Link
-                            href={`/download/${file.id}`}
-                            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/40 shrink-0 w-full sm:w-auto transform hover:scale-105"
-                          >
-                            <Download size={18} />
-                            <span className="whitespace-nowrap">تحميل الملف</span>
-                          </Link>
+                          {isAuthenticated ? (
+                            <Link
+                              href={`/download/${file.id}`}
+                              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/40 shrink-0 w-full sm:w-auto transform hover:scale-105"
+                            >
+                              <Download size={18} />
+                              <span className="whitespace-nowrap">تحميل الملف</span>
+                            </Link>
+                          ) : (
+                            <button
+                              onClick={() => setShowDownloadModal(true)}
+                              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/40 shrink-0 w-full sm:w-auto transform hover:scale-105"
+                            >
+                              <Download size={18} />
+                              <span className="whitespace-nowrap">تحميل الملف</span>
+                            </button>
+                          )}
                         </motion.div>
                       ))}
                     </div>
@@ -830,5 +844,55 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
         </div>
       </div>
     </div>
+
+    {/* Download Auth Modal */}
+    {showDownloadModal && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+        onClick={(e) => { if (e.target === e.currentTarget) setShowDownloadModal(false); }}
+      >
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative text-center">
+          <button
+            onClick={() => setShowDownloadModal(false)}
+            className="absolute top-4 left-4 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X size={20} />
+          </button>
+
+          <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock size={32} />
+          </div>
+
+          <h3 className="text-xl font-bold text-gray-900 mb-2">تسجيل الدخول مطلوب</h3>
+          <p className="text-gray-500 mb-8 text-sm leading-relaxed">
+            يجب أن تكون عضواً مسجلاً للتمكن من تحميل الملفات.<br />
+            سجّل الدخول أو أنشئ حساباً مجانياً للوصول إلى جميع المواد.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              href={`/login?redirect=${encodeURIComponent(pathname)}`}
+              className="flex-1 inline-flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-3 rounded-xl hover:bg-primary/90 transition-all"
+            >
+              <LogIn size={18} />
+              تسجيل الدخول
+            </Link>
+            <Link
+              href={`/register?redirect=${encodeURIComponent(pathname)}`}
+              className="flex-1 inline-flex items-center justify-center gap-2 border-2 border-primary text-primary font-bold px-6 py-3 rounded-xl hover:bg-primary/5 transition-all"
+            >
+              <UserPlus size={18} />
+              إنشاء حساب
+            </Link>
+          </div>
+
+          <p className="mt-6 text-xs text-gray-400">
+            التسجيل مجاني تماماً ويستغرق أقل من دقيقة
+          </p>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

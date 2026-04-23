@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Download, CheckCircle, FileText, AlertCircle, Eye } from 'lucide-react';
+import { Download, CheckCircle, FileText, AlertCircle, Eye, X, LogIn, UserPlus, Lock } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
+import { useAuthStore } from '@/store/useStore';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 interface Props {
   fileId: number | string;
@@ -28,7 +31,10 @@ export default function DownloadTimer({
 }: Props) {
   const [views, setViews] = useState<number>(viewsCount);
   const [downloads, setDownloads] = useState<number>(downloadCount);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const hasTrackedRef = useRef(false);
+  const { isAuthenticated } = useAuthStore();
+  const pathname = usePathname();
 
   useEffect(() => {
     setViews(viewsCount || 0);
@@ -91,18 +97,78 @@ export default function DownloadTimer({
             <span>رابط التحميل جاهز!</span>
           </div>
 
-          <a
-            href={downloadUrl}
-            className="inline-flex items-center justify-center gap-3 bg-primary text-white text-lg font-bold px-8 py-4 rounded-xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 w-full sm:w-auto transform hover:-translate-y-1"
-          >
-            <Download size={24} />
-            تحميل الملف الآن
-          </a>
+          {isAuthenticated ? (
+            <a
+              href={downloadUrl}
+              className="inline-flex items-center justify-center gap-3 bg-primary text-white text-lg font-bold px-8 py-4 rounded-xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 w-full sm:w-auto transform hover:-translate-y-1"
+            >
+              <Download size={24} />
+              تحميل الملف الآن
+            </a>
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="inline-flex items-center justify-center gap-3 bg-primary text-white text-lg font-bold px-8 py-4 rounded-xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 w-full sm:w-auto transform hover:-translate-y-1"
+            >
+              <Download size={24} />
+              تحميل الملف الآن
+            </button>
+          )}
 
           <p className="mt-4 text-sm text-gray-500">
             شكراً لاستخدامكم منصة التعليم. لا تنسى مشاركة الرابط مع أصدقائك!
           </p>
         </div>
+
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAuthModal(false); }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative text-center animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-4 left-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Icon */}
+            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock size={32} />
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-2">تسجيل الدخول مطلوب</h3>
+            <p className="text-gray-500 mb-8 text-sm leading-relaxed">
+              يجب أن تكون عضواً مسجلاً للتمكن من تحميل الملفات.<br />
+              سجّل الدخول أو أنشئ حساباً مجانياً للوصول إلى جميع المواد.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href={`/login?redirect=${encodeURIComponent(pathname)}`}
+                className="flex-1 inline-flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-3 rounded-xl hover:bg-primary/90 transition-all"
+              >
+                <LogIn size={18} />
+                تسجيل الدخول
+              </Link>
+              <Link
+                href={`/register?redirect=${encodeURIComponent(pathname)}`}
+                className="flex-1 inline-flex items-center justify-center gap-2 border-2 border-primary text-primary font-bold px-6 py-3 rounded-xl hover:bg-primary/5 transition-all"
+              >
+                <UserPlus size={18} />
+                إنشاء حساب
+              </Link>
+            </div>
+
+            <p className="mt-6 text-xs text-gray-400">
+              التسجيل مجاني تماماً ويستغرق أقل من دقيقة
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Safety Note */}
       <div className="mt-8 pt-6 border-t border-gray-100 flex items-start gap-3 text-right">
