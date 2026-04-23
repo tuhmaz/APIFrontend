@@ -1,4 +1,3 @@
-import Script from 'next/script';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
 import { getFrontSettings } from '@/lib/front-settings';
@@ -9,9 +8,9 @@ function resolveAdsenseClient(settings: Record<string, string | null>): string {
   const explicit = (settings.adsense_client || process.env.NEXT_PUBLIC_ADSENSE_CLIENT || '')
     .toString()
     .trim();
-  if (ADSENSE_CLIENT_PATTERN.test(explicit)) {
-    return explicit;
-  }
+  // Always extract just the ca-pub-XXXXX ID, even if the stored value is a full <script> tag
+  const explicitMatch = explicit.match(ADSENSE_CLIENT_PATTERN);
+  if (explicitMatch) return explicitMatch[0];
 
   for (const [key, rawValue] of Object.entries(settings)) {
     if (!key.startsWith('google_ads_') || typeof rawValue !== 'string') continue;
@@ -41,11 +40,11 @@ export default async function MainLayout({
           <link rel="preconnect" href="https://googleads.g.doubleclick.net" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
           <link rel="dns-prefetch" href="https://googleads.g.doubleclick.net" />
-          <Script
-            async
+          {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
+          <script
+            async={true}
             crossOrigin="anonymous"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsenseClient)}`}
-            strategy="afterInteractive"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
           />
         </>
       )}
