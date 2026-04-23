@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, Calendar, User, Eye, Share2, Tag, Layers, Folder, Home, FileText, Paperclip, Download, MessageSquare, Edit3, Info, X, LogIn, UserPlus, Lock } from 'lucide-react';
+import { ArrowRight, Calendar, User, Eye, Share2, Tag, Layers, Folder, Home, FileText, Paperclip, Download, MessageSquare, Edit3, Info, LogIn, UserPlus, Lock } from 'lucide-react';
 import { formatFileSize, getStorageUrl } from '@/lib/utils';
 import { useEffect, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
@@ -31,7 +31,6 @@ interface PostViewProps {
 export default function PostView({ post, countryCode, adSettings }: PostViewProps) {
   const { user, isAuthenticated } = useAuthStore();
   const [isMounted, setIsMounted] = useState(false);
-  const [showDownloadModal, setShowDownloadModal] = useState(false);
   const pathname = usePathname();
   const [comments, setComments] = useState<any[]>([]);
   const [commentBody, setCommentBody] = useState('');
@@ -482,48 +481,71 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
                     </h3>
                     <div className="grid gap-5">
                       {post.attachments.map((file: any) => (
-                        <motion.div 
+                        <motion.div
                           key={file.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.1 * post.attachments.indexOf(file) }}
-                          className="bg-white/95 backdrop-blur-sm p-4 sm:p-6 rounded-2xl border border-gray-100/50 flex flex-col sm:flex-row sm:items-center justify-between hover:shadow-xl transition-all duration-300 group gap-6 shadow-sm hover:shadow-blue-100/50 w-full max-w-full overflow-hidden"
+                          className="bg-white/95 backdrop-blur-sm p-4 sm:p-6 rounded-2xl border border-gray-100/50 hover:shadow-xl transition-all duration-300 group shadow-sm hover:shadow-blue-100/50 w-full max-w-full overflow-hidden"
                         >
-                          <div className="flex items-center gap-5 flex-1 min-w-0">
-                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-lg shrink-0">
-                              {file.file_type?.includes('pdf') ? <FileText size={24} /> : <Download size={24} />}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h4 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 text-base sm:text-lg break-words leading-snug">
-                                {file.file_name}
-                              </h4>
-                              <div className="flex items-center gap-3 flex-wrap">
-                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap">
-                                  {file.file_type || 'ملف'}
-                                </span>
-                                <span className="text-sm text-gray-500 font-medium whitespace-nowrap" dir="ltr">
-                                  {formatFileSize(file.file_size)}
-                                </span>
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-5 flex-1 min-w-0">
+                              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-lg shrink-0">
+                                {file.file_type?.includes('pdf') ? <FileText size={24} /> : <Download size={24} />}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h4 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 text-base sm:text-lg break-words leading-snug">
+                                  {file.file_name}
+                                </h4>
+                                <div className="flex items-center gap-3 flex-wrap">
+                                  <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap">
+                                    {file.file_type || 'ملف'}
+                                  </span>
+                                  <span className="text-sm text-gray-500 font-medium whitespace-nowrap" dir="ltr">
+                                    {formatFileSize(file.file_size)}
+                                  </span>
+                                </div>
                               </div>
                             </div>
+
+                            {isAuthenticated ? (
+                              <Link
+                                href={`/download/${file.id}`}
+                                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 hover:shadow-xl shrink-0 w-full sm:w-auto transform hover:scale-105"
+                              >
+                                <Download size={18} />
+                                <span className="whitespace-nowrap">تحميل الملف</span>
+                              </Link>
+                            ) : (
+                              <div className="shrink-0 flex items-center gap-2 bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-medium w-full sm:w-auto justify-center">
+                                <Lock size={15} />
+                                <span>يتطلب تسجيل الدخول</span>
+                              </div>
+                            )}
                           </div>
-                          
-                          {isAuthenticated ? (
-                            <Link
-                              href={`/download/${file.id}`}
-                              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/40 shrink-0 w-full sm:w-auto transform hover:scale-105"
-                            >
-                              <Download size={18} />
-                              <span className="whitespace-nowrap">تحميل الملف</span>
-                            </Link>
-                          ) : (
-                            <button
-                              onClick={() => setShowDownloadModal(true)}
-                              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/40 shrink-0 w-full sm:w-auto transform hover:scale-105"
-                            >
-                              <Download size={18} />
-                              <span className="whitespace-nowrap">تحميل الملف</span>
-                            </button>
+
+                          {!isAuthenticated && (
+                            <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-3">
+                              <p className="text-xs text-gray-500 sm:flex-1">
+                                سجّل الدخول أو أنشئ حساباً مجانياً للوصول إلى جميع الملفات
+                              </p>
+                              <div className="flex gap-2 w-full sm:w-auto">
+                                <Link
+                                  href={`/login?redirect=${encodeURIComponent(pathname)}`}
+                                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-md"
+                                >
+                                  <LogIn size={14} />
+                                  تسجيل الدخول
+                                </Link>
+                                <Link
+                                  href={`/register?redirect=${encodeURIComponent(pathname)}`}
+                                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-blue-600 text-blue-600 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-blue-50 transition-all"
+                                >
+                                  <UserPlus size={14} />
+                                  إنشاء حساب
+                                </Link>
+                              </div>
+                            </div>
                           )}
                         </motion.div>
                       ))}
@@ -845,54 +867,6 @@ export default function PostView({ post, countryCode, adSettings }: PostViewProp
       </div>
     </div>
 
-    {/* Download Auth Modal */}
-    {showDownloadModal && (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-        onClick={(e) => { if (e.target === e.currentTarget) setShowDownloadModal(false); }}
-      >
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative text-center">
-          <button
-            onClick={() => setShowDownloadModal(false)}
-            className="absolute top-4 left-4 text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X size={20} />
-          </button>
-
-          <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
-            <Lock size={32} />
-          </div>
-
-          <h3 className="text-xl font-bold text-gray-900 mb-2">تسجيل الدخول مطلوب</h3>
-          <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-            يجب أن تكون عضواً مسجلاً للتمكن من تحميل الملفات.<br />
-            سجّل الدخول أو أنشئ حساباً مجانياً للوصول إلى جميع المواد.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link
-              href={`/login?redirect=${encodeURIComponent(pathname)}`}
-              className="flex-1 inline-flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-3 rounded-xl hover:bg-primary/90 transition-all"
-            >
-              <LogIn size={18} />
-              تسجيل الدخول
-            </Link>
-            <Link
-              href={`/register?redirect=${encodeURIComponent(pathname)}`}
-              className="flex-1 inline-flex items-center justify-center gap-2 border-2 border-primary text-primary font-bold px-6 py-3 rounded-xl hover:bg-primary/5 transition-all"
-            >
-              <UserPlus size={18} />
-              إنشاء حساب
-            </Link>
-          </div>
-
-          <p className="mt-6 text-xs text-gray-400">
-            التسجيل مجاني تماماً ويستغرق أقل من دقيقة
-          </p>
-        </div>
-      </div>
-    )}
     </>
   );
 }

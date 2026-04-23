@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { FileText, Download, AlertCircle, X, LogIn, UserPlus, Lock } from 'lucide-react';
+import { FileText, Download, AlertCircle, LogIn, UserPlus, Lock } from 'lucide-react';
 import DOMPurify from 'isomorphic-dompurify';
 import { useAuthStore } from '@/store/useStore';
 import { usePathname } from 'next/navigation';
@@ -34,7 +33,6 @@ function formatFileSize(bytes: number): string {
 export default function ArticleContent({ content, files, className }: Props) {
   const { isAuthenticated } = useAuthStore();
   const pathname = usePathname();
-  const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   let processedContent = DOMPurify.sanitize(content, {
     ADD_TAGS: ['iframe'],
@@ -62,41 +60,65 @@ export default function ArticleContent({ content, files, className }: Props) {
             {files.map((file, index) => (
               <div
                 key={file.id || `file-${index}`}
-                className="bg-white p-4 rounded-lg border border-gray-200 flex items-center justify-between hover:shadow-md transition-shadow group"
+                className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow group"
               >
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className="w-12 h-12 bg-red-50 text-red-600 rounded-lg flex items-center justify-center shrink-0">
-                    <span className="font-bold text-sm uppercase">{file.file_type || 'PDF'}</span>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="w-12 h-12 bg-red-50 text-red-600 rounded-lg flex items-center justify-center shrink-0">
+                      <span className="font-bold text-sm uppercase">{file.file_type || 'PDF'}</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4
+                        className="font-medium text-gray-900 mb-1 group-hover:text-primary transition-colors whitespace-normal break-words bidi-plaintext"
+                        dir="auto"
+                      >
+                        {file.file_name || 'ملف للتحميل'}
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        {formatFileSize(file.file_size || 0)} • {file.file_category || 'ملف'}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h4
-                      className="font-medium text-gray-900 mb-1 group-hover:text-primary transition-colors whitespace-normal break-words bidi-plaintext"
-                      dir="auto"
+
+                  {isAuthenticated ? (
+                    <Link
+                      href={`/download/${file.id}`}
+                      className="shrink-0 px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-lg shadow-primary/20"
                     >
-                      {file.file_name || 'ملف للتحميل'}
-                    </h4>
-                    <p className="text-sm text-gray-500">
-                      {formatFileSize(file.file_size || 0)} • {file.file_category || 'ملف'}
-                    </p>
-                  </div>
+                      <Download size={18} />
+                      <span className="hidden sm:inline">تحميل</span>
+                    </Link>
+                  ) : (
+                    <div className="shrink-0 flex items-center gap-1.5 bg-gray-100 text-gray-500 px-3 py-2 rounded-lg text-sm">
+                      <Lock size={14} />
+                      <span className="hidden sm:inline">مقيّد</span>
+                    </div>
+                  )}
                 </div>
 
-                {isAuthenticated ? (
-                  <Link
-                    href={`/download/${file.id}`}
-                    className="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-lg shadow-primary/20"
-                  >
-                    <Download size={18} />
-                    <span className="hidden sm:inline">تحميل</span>
-                  </Link>
-                ) : (
-                  <button
-                    onClick={() => setShowDownloadModal(true)}
-                    className="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-lg shadow-primary/20"
-                  >
-                    <Download size={18} />
-                    <span className="hidden sm:inline">تحميل</span>
-                  </button>
+                {!isAuthenticated && (
+                  <div className="mt-3 pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-2">
+                    <p className="text-xs text-gray-500 flex items-center gap-1 sm:flex-1">
+                      <Lock size={12} />
+                      سجّل الدخول للتمكن من تحميل هذا الملف
+                    </p>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <Link
+                        href={`/login?redirect=${encodeURIComponent(pathname)}`}
+                        className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/90 transition-all"
+                      >
+                        <LogIn size={14} />
+                        تسجيل الدخول
+                      </Link>
+                      <Link
+                        href={`/register?redirect=${encodeURIComponent(pathname)}`}
+                        className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-primary text-primary text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/5 transition-all"
+                      >
+                        <UserPlus size={14} />
+                        إنشاء حساب
+                      </Link>
+                    </div>
+                  </div>
                 )}
               </div>
             ))}
@@ -112,54 +134,6 @@ export default function ArticleContent({ content, files, className }: Props) {
         </p>
       </div>
 
-      {/* Download Auth Modal */}
-      {showDownloadModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowDownloadModal(false); }}
-        >
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative text-center">
-            <button
-              onClick={() => setShowDownloadModal(false)}
-              className="absolute top-4 left-4 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock size={32} />
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-2">تسجيل الدخول مطلوب</h3>
-            <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-              يجب أن تكون عضواً مسجلاً للتمكن من تحميل الملفات.<br />
-              سجّل الدخول أو أنشئ حساباً مجانياً للوصول إلى جميع المواد.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href={`/login?redirect=${encodeURIComponent(pathname)}`}
-                className="flex-1 inline-flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-3 rounded-xl hover:bg-primary/90 transition-all"
-              >
-                <LogIn size={18} />
-                تسجيل الدخول
-              </Link>
-              <Link
-                href={`/register?redirect=${encodeURIComponent(pathname)}`}
-                className="flex-1 inline-flex items-center justify-center gap-2 border-2 border-primary text-primary font-bold px-6 py-3 rounded-xl hover:bg-primary/5 transition-all"
-              >
-                <UserPlus size={18} />
-                إنشاء حساب
-              </Link>
-            </div>
-
-            <p className="mt-6 text-xs text-gray-400">
-              التسجيل مجاني تماماً ويستغرق أقل من دقيقة
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
