@@ -75,7 +75,7 @@ export default function ContentGate({ children }: ContentGateProps) {
     }
   };
 
-  const loginHref = `/login?redirect=${encodeURIComponent(pathname)}`;
+  const loginHref = `/login?return=${encodeURIComponent(pathname)}`;
 
   return (
     <div className="relative">
@@ -112,7 +112,7 @@ export default function ContentGate({ children }: ContentGateProps) {
                 تسجيل الدخول
               </Link>
               <Link
-                href={`/register?redirect=${encodeURIComponent(pathname)}`}
+                href={`/register?return=${encodeURIComponent(pathname)}`}
                 className="w-full inline-flex items-center justify-center px-6 py-3 border border-border text-foreground rounded-xl font-medium text-sm hover:bg-secondary/50 transition-colors"
               >
                 إنشاء حساب جديد

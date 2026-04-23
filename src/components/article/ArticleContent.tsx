@@ -97,7 +97,7 @@ export default function ArticleContent({ content, files, className }: Props) {
                 </div>
 
                 {!isAuthenticated && (
-                  <div className="mt-3 pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-2">
+                  <div className="mt-3 pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-2 pointer-events-auto select-auto">
                     <p className="text-xs text-gray-500 flex items-center gap-1 sm:flex-1">
                       <Lock size={12} />
                       سجّل الدخول للتمكن من تحميل هذا الملف
