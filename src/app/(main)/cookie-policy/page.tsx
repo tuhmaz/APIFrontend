@@ -118,9 +118,26 @@ export default function CookiePolicyPage() {
             </ul>
 
             <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-4">5. ملفات تعريف الارتباط الخارجية</h2>
-            <p>
-              قد نستخدم خدمات خارجية مثل Google Analytics لتحليل أداء الموقع. هذه الخدمات قد تضع ملفات تعريف ارتباط خاصة بها لجمع البيانات حول استخدامك للموقع. نحن لا نتحكم في ملفات تعريف الارتباط التي يتم وضعها بواسطة الجهات الخارجية.
+            <p className="mb-4">
+              قد نستخدم خدمات خارجية مثل Google Analytics لتحليل أداء الموقع، وGoogle AdSense لعرض الإعلانات.
+              هذه الخدمات قد تضع ملفات تعريف ارتباط خاصة بها لجمع البيانات حول استخدامك للموقع. نحن لا نتحكم في ملفات تعريف الارتباط التي يتم وضعها بواسطة الجهات الخارجية.
             </p>
+            <p className="mb-2">
+              <strong>Google AdSense:</strong> يستخدم ملف تعريف ارتباط DART لعرض إعلانات مخصصة بناءً على زيارات
+              المستخدم السابقة لهذا الموقع ومواقع أخرى. يمكنك إلغاء الاشتراك عبر:
+            </p>
+            <ul className="list-disc list-inside space-y-1 mb-4 mr-4">
+              <li>
+                <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  إعدادات إعلانات Google
+                </a>
+              </li>
+              <li>
+                <a href="https://optout.aboutads.info" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  aboutads.info
+                </a>
+              </li>
+            </ul>
 
             <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-4">6. تحديث سياسة ملفات تعريف الارتباط</h2>
             <p>

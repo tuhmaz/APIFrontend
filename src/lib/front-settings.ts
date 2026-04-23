@@ -21,7 +21,7 @@ export const getFrontSettings = cache(async (): Promise<FrontSettings> => {
   const baseUrl = API_CONFIG.BASE_URL.replace(/\/+$/, '');
   try {
     const res = await ssrFetch(`${baseUrl}/front/settings`, {
-      next: { revalidate: 300 },
+      next: { revalidate: 60 },
       headers: getSSRHeaders(),
     });
     if (!res.ok) return {};

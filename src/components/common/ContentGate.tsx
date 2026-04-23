@@ -79,18 +79,22 @@ export default function ContentGate({ children }: ContentGateProps) {
 
   return (
     <div className="relative">
-      {/* Content is always in the DOM for search engine crawlers (AdSense compliant) */}
-      <div
-        className={needsLogin || needsProfile ? 'select-none pointer-events-none' : undefined}
-        style={needsLogin || needsProfile ? { maxHeight: '280px', overflow: 'hidden', filter: 'blur(6px)' } : undefined}
-        aria-hidden={needsLogin || needsProfile ? true : undefined}
-      >
+      {/* Content preview — always fully visible for crawlers and AdSense compliance */}
+      <div className={needsLogin || needsProfile ? 'pointer-events-none select-none' : undefined}>
         {children}
       </div>
 
+      {/* Gradient fade over the bottom of the preview */}
+      {(needsLogin || needsProfile) && (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-64 pointer-events-none"
+          style={{ background: 'linear-gradient(to bottom, transparent, var(--background, #fff) 80%)' }}
+        />
+      )}
+
       {/* ── Login required overlay ── */}
       {needsLogin && (
-        <div className="absolute inset-0 flex items-start justify-center pt-8 z-10">
+        <div className="flex items-center justify-center py-8 z-10 relative">
           <div className="bg-card border border-border rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
             <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <LogIn className="w-7 h-7 text-primary" />
@@ -120,7 +124,7 @@ export default function ContentGate({ children }: ContentGateProps) {
 
       {/* ── Profile completion overlay ── */}
       {needsProfile && (
-        <div className="absolute inset-0 flex items-start justify-center pt-8 z-10">
+        <div className="flex items-center justify-center py-8 z-10 relative">
           <div className="bg-card border border-border rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4">
             <div className="text-center mb-6">
               <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -38,9 +38,8 @@ Disallow: /reset-password
 Disallow: /verify-email
 Disallow: /auth/
 
-# Disallow internal pages
+# Disallow internal/duplicate parameters only
 Disallow: /*?*country=
-Disallow: /*?*page=
 Disallow: /*?*sort=
 Disallow: /*?*filter=
 

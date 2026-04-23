@@ -185,6 +185,40 @@ export default function PrivacyPolicyPage() {
           </div>
 
           <div className="mt-12 pt-8 border-t border-slate-100">
+            <h2 className="text-xl font-bold text-slate-800 mb-4">إعلانات Google AdSense</h2>
+            <p className="text-slate-600 mb-3">
+              نستخدم Google AdSense لعرض الإعلانات على موقعنا. تستخدم Google، بصفتها مزوداً خارجياً للإعلانات،
+              ملفات تعريف الارتباط (Cookies) بما فيها ملف تعريف ارتباط DART، لعرض إعلانات للزوار استناداً إلى زياراتهم
+              السابقة لهذا الموقع ومواقع أخرى على الإنترنت.
+            </p>
+            <p className="text-slate-600 mb-3">
+              يمكنك إلغاء الاشتراك في استخدام ملف تعريف ارتباط DART من خلال زيارة صفحة
+              سياسة الخصوصية الخاصة بشبكة Google للإعلانات والمحتوى. كما يمكن لمزودي الإعلانات الخارجيين الآخرين
+              استخدام ملفات تعريف الارتباط لعرض إعلانات على موقعنا.
+            </p>
+            <ul className="list-disc list-inside text-slate-600 space-y-2 mb-4">
+              <li>
+                لإلغاء الاشتراك في الإعلانات المخصصة من Google:{' '}
+                <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  إعدادات الإعلانات
+                </a>
+              </li>
+              <li>
+                لإلغاء الاشتراك من خلال شبكة إعلانية:{' '}
+                <a href="https://optout.aboutads.info" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  aboutads.info
+                </a>
+              </li>
+              <li>
+                لمزيد من المعلومات حول كيفية استخدام Google للبيانات:{' '}
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  سياسة خصوصية Google
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div className="mt-12 pt-8 border-t border-slate-100">
             <h2 className="text-xl font-bold text-slate-800 mb-6">التواصل معنا</h2>
             <p className="text-slate-600 mb-6">
               إذا كانت لديك أي أسئلة أو اقتراحات، يسعدنا أن نتواصل معك عبر:
