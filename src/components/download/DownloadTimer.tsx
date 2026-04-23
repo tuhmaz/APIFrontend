@@ -148,14 +148,14 @@ export default function DownloadTimer({
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
-                href={`/login?redirect=${encodeURIComponent(pathname)}`}
+                href={`/login?return=${encodeURIComponent(pathname)}`}
                 className="flex-1 inline-flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-3 rounded-xl hover:bg-primary/90 transition-all"
               >
                 <LogIn size={18} />
                 تسجيل الدخول
               </Link>
               <Link
-                href={`/register?redirect=${encodeURIComponent(pathname)}`}
+                href={`/register?return=${encodeURIComponent(pathname)}`}
                 className="flex-1 inline-flex items-center justify-center gap-2 border-2 border-primary text-primary font-bold px-6 py-3 rounded-xl hover:bg-primary/5 transition-all"
               >
                 <UserPlus size={18} />
