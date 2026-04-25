@@ -1,46 +1,74 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
-import { initializeAdSlots, normalizeAdSnippet } from '@/lib/adsense';
+import {
+  detectAdType,
+  normalizeAdSnippet,
+  extractScripts,
+  initializeAdSlots,
+} from '@/lib/adsense';
 
 interface AdUnitProps {
   adCode: string;
   className?: string;
 }
 
-/**
- * Simple AdSense Ad Unit Component
- * - Renders ad code only once
- * - No duplicate initialization
- */
 export default function AdUnit({ adCode, className = '' }: AdUnitProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const cleanupRef = useRef<(() => void) | null>(null);
-  const normalizedMarkup = useMemo(() => normalizeAdSnippet(adCode || ''), [adCode]);
+
+  const adType = useMemo(() => detectAdType(adCode || ''), [adCode]);
+
+  // AdSense path: strip scripts, keep <ins> markup
+  const normalizedMarkup = useMemo(
+    () => (adType === 'adsense' ? normalizeAdSnippet(adCode || '') : ''),
+    [adType, adCode]
+  );
+
+  // Script path: extract all <script> tags as structured objects
+  const scripts = useMemo(
+    () => (adType === 'script' ? extractScripts(adCode || '') : []),
+    [adType, adCode]
+  );
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    cleanupRef.current?.();
-    cleanupRef.current = null;
+    // Clear previous content
     container.innerHTML = '';
-    container.setAttribute('data-ad-rendered', 'false');
 
-    if (!normalizedMarkup) return;
+    // ── AdSense path ──────────────────────────────────────────────
+    if (adType === 'adsense') {
+      if (!normalizedMarkup) return;
+      container.innerHTML = normalizedMarkup;
+      container.setAttribute('data-ad-rendered', 'true');
+      return initializeAdSlots(container);
+    }
 
-    container.innerHTML = normalizedMarkup;
-    container.setAttribute('data-ad-rendered', 'true');
-    cleanupRef.current = initializeAdSlots(container);
+    // ── Generic script path ───────────────────────────────────────
+    if (adType === 'script' && scripts.length > 0) {
+      scripts.forEach((info) => {
+        const el = document.createElement('script');
+        if (info.src) {
+          // External script (src attribute on the tag itself)
+          el.src = info.src;
+          el.async = info.async;
+          if (info.referrerPolicy) el.referrerPolicy = info.referrerPolicy;
+          if (info.crossOrigin) el.crossOrigin = info.crossOrigin;
+        } else if (info.content) {
+          // Inline script — executes inline JS (e.g. code that creates another script)
+          el.textContent = info.content;
+        }
+        container.appendChild(el);
+      });
+    }
 
     return () => {
-      cleanupRef.current?.();
-      cleanupRef.current = null;
       container.innerHTML = '';
     };
-  }, [normalizedMarkup]);
+  }, [adType, normalizedMarkup, scripts]);
 
-  if (!normalizedMarkup) return null;
+  if (adType === 'empty') return null;
 
   return (
     <div

@@ -1,5 +1,49 @@
 const SCRIPT_TAG_PATTERN = /<script\b[^>]*>[\s\S]*?<\/script>/gi;
 
+export type AdType = 'adsense' | 'script' | 'empty';
+
+export interface ScriptInfo {
+  src: string | null;
+  async: boolean;
+  referrerPolicy: string;
+  crossOrigin: string | null;
+  content: string;
+}
+
+/** Detect whether ad code is AdSense (<ins>), plain script injection, or empty */
+export function detectAdType(rawCode: string): AdType {
+  const decoded = decodeAdSnippet(rawCode);
+  if (!decoded) return 'empty';
+  if (/<ins\b[^>]*class="adsbygoogle"/i.test(decoded)) return 'adsense';
+  if (/<script\b/i.test(decoded)) return 'script';
+  return 'empty';
+}
+
+/** Extract all <script> tags from ad code into structured objects */
+export function extractScripts(rawCode: string): ScriptInfo[] {
+  const decoded = decodeAdSnippet(rawCode);
+  if (!decoded) return [];
+
+  const results: ScriptInfo[] = [];
+  const pattern = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(decoded)) !== null) {
+    const attrs = match[1];
+    const content = match[2].trim();
+    const srcMatch = attrs.match(/src=["']([^"']*)["']/i);
+    results.push({
+      src: srcMatch ? srcMatch[1] : null,
+      async: /\basync\b/i.test(attrs),
+      referrerPolicy: (attrs.match(/referrerpolicy=["']([^"']*)["']/i) || [])[1] || '',
+      crossOrigin: (attrs.match(/crossorigin=["']([^"']*)["']/i) || [])[1] || null,
+      content,
+    });
+  }
+
+  return results;
+}
+
 /**
  * Get or create the adsbygoogle queue.
  *
