@@ -151,20 +151,6 @@ export default async function RootLayout({
   const normalizedAdsenseClient = resolveAdsenseClient(settings);
 
   return (
-    <>
-    {/*
-      CookieYes — certified TCF v2.2 CMP
-      strategy="beforeInteractive" guarantees it runs BEFORE:
-        - React hydration
-        - AdSense (in nested layout)
-        - Google Analytics (afterInteractive)
-    */}
-    <Script
-      id="cookieyes"
-      type="text/javascript"
-      src="https://cdn-cookieyes.com/client_data/102b0c58290dc3f901fd1537fc68af78/script.js"
-      strategy="beforeInteractive"
-    />
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
         {/* Preconnect to Google Fonts - Critical for LCP */}
@@ -178,6 +164,19 @@ export default async function RootLayout({
       <body
         className={`${cairo.className} ${cairo.variable} antialiased min-h-screen`}
       >
+        {/*
+          CookieYes — certified TCF v2.2 CMP
+          strategy="beforeInteractive" guarantees it runs BEFORE:
+            - React hydration
+            - AdSense (in nested layout)
+            - Google Analytics (afterInteractive)
+        */}
+        <Script
+          id="cookieyes"
+          type="text/javascript"
+          src="https://cdn-cookieyes.com/client_data/102b0c58290dc3f901fd1537fc68af78/script.js"
+          strategy="beforeInteractive"
+        />
         <FrontSettingsProvider settings={settings}>
           <GoogleAnalytics gaId={gaId} />
           <ThemeInitializer />
@@ -187,6 +186,5 @@ export default async function RootLayout({
         </FrontSettingsProvider>
       </body>
     </html>
-    </>
   );
 }
