@@ -62,6 +62,7 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'theme-storage',
+      skipHydration: true,
     }
   )
 );
@@ -78,11 +79,12 @@ interface CountryState {
 export const useCountryStore = create<CountryState>()(
   persist(
     (set) => ({
-      country: { id: '1', code: 'jo', name: 'الأردن' }, // Default to Jordan
+      country: { id: '1', code: 'jo', name: 'الأردن' },
       setCountry: (country) => set({ country }),
     }),
     {
       name: 'country-storage',
+      skipHydration: true,
     }
   )
 );
@@ -103,6 +105,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      skipHydration: true,
     }
   )
 );
@@ -128,6 +131,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'settings-storage',
+      skipHydration: true,
       version: 2,
       migrate: (persistedState: any) => {
         if (!persistedState || typeof persistedState !== 'object') return persistedState;

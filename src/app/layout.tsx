@@ -9,6 +9,7 @@ import { getStorageUrl } from '@/lib/utils';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import { getFrontSettings } from '@/lib/front-settings';
 import { FrontSettingsProvider } from '@/components/front-settings/FrontSettingsProvider';
+import StoreHydration from '@/components/StoreHydration';
 
 // Cairo font - Arabic optimized, loaded via Next.js for better performance
 const cairo = Cairo({
@@ -207,6 +208,7 @@ export default async function RootLayout({
           />
         </noscript>
         <FrontSettingsProvider settings={settings}>
+          <StoreHydration />
           <GoogleAnalytics gaId={gaId} />
           <ThemeInitializer />
           <ToastProvider />
