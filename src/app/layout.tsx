@@ -153,6 +153,20 @@ export default async function RootLayout({
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
+        {/*
+          Google Consent Mode v2 — MUST be the very first script.
+          Initialises dataLayer + gtag and sets all consent signals to "denied"
+          before any Google tag (Analytics, AdSense) has a chance to load.
+          CookieYes reads this and calls gtag('consent','update',{...}) once
+          the user makes a choice, satisfying GCM's "Consent tab" requirement.
+          wait_for_update:500 gives CookieYes 500 ms to fire the update before
+          Google tags act on the default denied state.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'ad_storage':'denied','analytics_storage':'denied','ad_user_data':'denied','ad_personalization':'denied','wait_for_update':500});gtag('set','ads_data_redaction',true);gtag('set','url_passthrough',true);`,
+          }}
+        />
         {/* Preconnect to Google Fonts - Critical for LCP */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
