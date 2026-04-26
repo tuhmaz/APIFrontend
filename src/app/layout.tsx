@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { Cairo } from 'next/font/google';
 import './globals.css';
 import ToastProvider from '@/components/ui/ToastProvider';
@@ -48,9 +49,8 @@ const resolveAdsenseClient = (settings: Record<string, string | null>): string =
   const explicit = (settings.adsense_client || process.env.NEXT_PUBLIC_ADSENSE_CLIENT || '')
     .toString()
     .trim();
-  if (ADSENSE_CLIENT_PATTERN.test(explicit)) {
-    return explicit;
-  }
+  const explicitMatch = explicit.match(ADSENSE_CLIENT_PATTERN);
+  if (explicitMatch) return explicitMatch[0];
 
   for (const [key, rawValue] of Object.entries(settings)) {
     if (!key.startsWith('google_ads_') || typeof rawValue !== 'string') continue;
@@ -151,12 +151,26 @@ export default async function RootLayout({
   const normalizedAdsenseClient = resolveAdsenseClient(settings);
 
   return (
+    <>
+    {/*
+      CookieYes — certified TCF v2.2 CMP
+      strategy="beforeInteractive" guarantees it runs BEFORE:
+        - React hydration
+        - AdSense (in nested layout)
+        - Google Analytics (afterInteractive)
+    */}
+    <Script
+      id="cookieyes"
+      type="text/javascript"
+      src="https://cdn-cookieyes.com/client_data/102b0c58290dc3f901fd1537fc68af78/script.js"
+      strategy="beforeInteractive"
+    />
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
         {/* Preconnect to Google Fonts - Critical for LCP */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* AdSense meta tag (ownership verification only - no ads triggered) */}
+        {/* AdSense ownership verification */}
         {normalizedAdsenseClient && (
           <meta name="google-adsense-account" content={normalizedAdsenseClient} />
         )}
@@ -173,5 +187,6 @@ export default async function RootLayout({
         </FrontSettingsProvider>
       </body>
     </html>
+    </>
   );
 }
