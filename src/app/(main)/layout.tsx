@@ -40,11 +40,15 @@ export default async function MainLayout({
           <link rel="preconnect" href="https://googleads.g.doubleclick.net" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
           <link rel="dns-prefetch" href="https://googleads.g.doubleclick.net" />
-          {/* Blocked by CookieYes until the user accepts "advertisement" cookies */}
+          {/*
+            AdSense — GCM Advanced Mode.
+            Loads immediately; ad_storage/ad_user_data/ad_personalization default
+            to "denied" (set in root layout <head>), so AdSense shows
+            non-personalized ads until CookieYes fires consent.update = granted.
+            TCF v2.2 string from CookieYes is read automatically by AdSense.
+          */}
           {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
           <script
-            type="text/plain"
-            data-cookieconsent="advertisement"
             async={true}
             crossOrigin="anonymous"
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
