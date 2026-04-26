@@ -40,8 +40,11 @@ export default async function MainLayout({
           <link rel="preconnect" href="https://googleads.g.doubleclick.net" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
           <link rel="dns-prefetch" href="https://googleads.g.doubleclick.net" />
+          {/* Blocked by CookieYes until the user accepts "advertisement" cookies */}
           {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
           <script
+            type="text/plain"
+            data-cookieconsent="advertisement"
             async={true}
             crossOrigin="anonymous"
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}

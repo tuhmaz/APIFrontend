@@ -8,6 +8,15 @@ import {
   initializeAdSlots,
 } from '@/lib/adsense';
 
+/** Returns true if CookieYes consent for `category` has been given (or CookieYes is absent). */
+function hasCkyConsent(category: string): boolean {
+  const win = window as Window & {
+    getCkyConsent?: () => { categories?: { accepted?: string[] } };
+  };
+  if (typeof win.getCkyConsent !== 'function') return true;
+  return win.getCkyConsent()?.categories?.accepted?.includes(category) ?? true;
+}
+
 interface AdUnitProps {
   adCode: string;
   className?: string;
@@ -47,20 +56,38 @@ export default function AdUnit({ adCode, className = '' }: AdUnitProps) {
 
     // ── Generic script path ───────────────────────────────────────
     if (adType === 'script' && scripts.length > 0) {
-      scripts.forEach((info) => {
-        const el = document.createElement('script');
-        if (info.src) {
-          // External script (src attribute on the tag itself)
-          el.src = info.src;
-          el.async = info.async;
-          if (info.referrerPolicy) el.referrerPolicy = info.referrerPolicy;
-          if (info.crossOrigin) el.crossOrigin = info.crossOrigin;
-        } else if (info.content) {
-          // Inline script — executes inline JS (e.g. code that creates another script)
-          el.textContent = info.content;
-        }
-        container.appendChild(el);
-      });
+      const inject = () => {
+        scripts.forEach((info) => {
+          const el = document.createElement('script');
+          if (info.src) {
+            el.src = info.src;
+            el.async = info.async;
+            if (info.referrerPolicy) el.referrerPolicy = info.referrerPolicy;
+            if (info.crossOrigin) el.crossOrigin = info.crossOrigin;
+          } else if (info.content) {
+            el.textContent = info.content;
+          }
+          container.appendChild(el);
+        });
+      };
+
+      if (hasCkyConsent('advertisement')) {
+        inject();
+      } else {
+        // Wait for the user to accept advertisement cookies
+        const onConsent = (e: Event) => {
+          const accepted: string[] = (e as CustomEvent).detail?.accepted ?? [];
+          if (accepted.includes('advertisement')) {
+            inject();
+            document.removeEventListener('cookieyes_consent_update', onConsent);
+          }
+        };
+        document.addEventListener('cookieyes_consent_update', onConsent);
+        return () => {
+          document.removeEventListener('cookieyes_consent_update', onConsent);
+          container.innerHTML = '';
+        };
+      }
     }
 
     return () => {

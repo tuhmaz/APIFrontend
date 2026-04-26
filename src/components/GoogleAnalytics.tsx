@@ -1,7 +1,5 @@
 'use client';
 
-import Script from 'next/script';
-
 type Props = {
   gaId?: string | null;
 };
@@ -11,18 +9,20 @@ export default function GoogleAnalytics({ gaId }: Props) {
 
   return (
     <>
-      <Script
+      {/* Blocked by CookieYes until the user accepts "analytics" cookies */}
+      <script
+        type="text/plain"
+        data-cookieconsent="analytics"
+        async
         src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-        strategy="afterInteractive"
       />
-      <Script id="google-analytics" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${gaId}');
-        `}
-      </Script>
+      <script
+        type="text/plain"
+        data-cookieconsent="analytics"
+        dangerouslySetInnerHTML={{
+          __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');`,
+        }}
+      />
     </>
   );
 }
