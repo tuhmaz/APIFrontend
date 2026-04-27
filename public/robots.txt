@@ -43,9 +43,6 @@ Disallow: /*?*country=
 Disallow: /*?*sort=
 Disallow: /*?*filter=
 
-# Disallow duplicate content paths
-Disallow: /classes
-
 # Block specific files
 Disallow: /*.json$
 
@@ -130,12 +127,6 @@ Disallow: /
 
 User-agent: Screaming Frog
 Disallow: /
-
-# ======================================
-# Crawl Delay (for bots that respect it)
-# ======================================
-User-agent: *
-Crawl-delay: 1
 
 # ======================================
 # Sitemap Location
